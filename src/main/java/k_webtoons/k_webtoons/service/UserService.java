@@ -5,6 +5,7 @@ import k_webtoons.k_webtoons.model.UserRegisterDTO;
 import k_webtoons.k_webtoons.model.UserResponse;
 import k_webtoons.k_webtoons.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,17 +16,20 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserResponse register(UserRegisterDTO dto){
+    public UserResponse register(UserRegisterDTO dto) {
         if (userRepository.existsByUserEmail(dto.userEmail())) {
             throw new RuntimeException("이미 사용중인 이메일입니다.");
         }
+
+        String role = "USER";
 
         AppUser newAppUser = new AppUser(
                 dto.userEmail(),
                 passwordEncoder.encode(dto.userPassword()),
                 dto.userAge(),
                 dto.gender(),
-                dto.nickname()
+                dto.nickname(),
+                role
         );
 
         AppUser savedAppUser = userRepository.save(newAppUser);
@@ -35,5 +39,12 @@ public class UserService {
                 savedAppUser.getUserEmail(),
                 savedAppUser.getNickname()
         );
+    }
+
+    public String getUserRoleByEmail(String email) {
+        AppUser user = userRepository.findByUserEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없음"));
+        System.out.println("role 은 : " +user.getRole());
+        return user.getRole();
     }
 }

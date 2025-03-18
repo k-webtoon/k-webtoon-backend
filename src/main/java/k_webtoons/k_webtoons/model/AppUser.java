@@ -17,7 +17,7 @@ import java.util.List;
 public class AppUser {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)  // PostgreSQL에서 자동 증가 필드로 처리
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "index_id")
     private Long indexId;
 
@@ -28,23 +28,30 @@ public class AppUser {
     private String userPassword;
 
     private LocalDateTime createDateTime;
+
     private LocalDateTime deletedDateTime;
+
     private Integer userAge;
+
     private String gender;
+
     private String nickname;
 
-    // 기본 생성자 외에 필요한 필드를 가지는 생성자 추가
-    public AppUser(String userEmail, String encodedPassword, Integer userAge, String gender, String nickname) {
+    @Column(nullable = false)
+    private String role;
+
+    public AppUser(String userEmail, String encodedPassword, Integer userAge, String gender, String nickname, String role) {
         this.userEmail = userEmail;
         this.userPassword = encodedPassword;
         this.userAge = userAge;
         this.gender = gender;
         this.nickname = nickname;
+        this.role = role;
         this.createDateTime = LocalDateTime.now();
     }
 
     // Spring Security 권한 처리
     public List<SimpleGrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
     }
 }

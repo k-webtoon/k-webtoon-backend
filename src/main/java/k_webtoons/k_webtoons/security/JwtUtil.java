@@ -6,6 +6,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
 import javax.crypto.SecretKey;
 import java.util.Arrays;
 import java.util.Date;
@@ -25,17 +26,26 @@ public class JwtUtil {
         this.expirationMs = expirationMs;
     }
 
-    public String generateToken(String username) {
-        return Jwts.builder()
-                .subject(username)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expirationMs))
-                .signWith(secretKey)
-                .compact();
+    public String generateToken(String username, String role) {
+        try {
+            return Jwts.builder()
+                    .subject(username)
+                    .claim("role", role)
+                    .issuedAt(new Date())
+                    .expiration(new Date(System.currentTimeMillis() + expirationMs))
+                    .signWith(secretKey, Jwts.SIG.HS256)  // 명시적 알고리즘 지정
+                    .compact();
+        } catch (Exception e) {
+            throw new RuntimeException("JWT 생성 실패", e);
+        }
     }
 
     public String extractUsername(String token) {
         return parseToken(token).getSubject();
+    }
+
+    public String extractRole(String token) {
+        return (String) parseToken(token).get("role");
     }
 
     public boolean validateToken(String token) {
