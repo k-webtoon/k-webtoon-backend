@@ -1,4 +1,4 @@
-package k_webtoons.k_webtoons.controller;
+package k_webtoons.k_webtoons.controller.auth;
 
 import k_webtoons.k_webtoons.model.user.LoginDTO;
 import k_webtoons.k_webtoons.model.user.UserRegisterDTO;
