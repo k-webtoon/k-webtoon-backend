@@ -17,6 +17,7 @@ public class JwtUtil {
     private final SecretKey secretKey;
     private final long expirationMs;
 
+    // jwt 토큰 생성 시크릿 키나 토큰유지시간은 properties 에서 설정
     public JwtUtil(
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.expiration}") long expirationMs
@@ -26,6 +27,7 @@ public class JwtUtil {
         this.expirationMs = expirationMs;
     }
 
+    // 토큰생성
     public String generateToken(String username, String role) {
         try {
             return Jwts.builder()

@@ -21,6 +21,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
+    // 토큰 필터처리 하는 곳 여기서 옳바른 토큰인지 확인
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,

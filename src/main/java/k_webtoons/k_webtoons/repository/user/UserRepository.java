@@ -1,6 +1,6 @@
-package k_webtoons.k_webtoons.repository;
+package k_webtoons.k_webtoons.repository.user;
 
-import k_webtoons.k_webtoons.model.AppUser;
+import k_webtoons.k_webtoons.model.user.AppUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

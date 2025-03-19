@@ -1,6 +1,7 @@
-package k_webtoons.k_webtoons.model;
+package k_webtoons.k_webtoons.model.user;
 
 import jakarta.persistence.*;
+import k_webtoons.k_webtoons.model.favorites.Favorites;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,6 +10,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -39,6 +41,9 @@ public class AppUser {
 
     @Column(nullable = false)
     private String role;
+
+    @OneToMany(mappedBy = "appUser")
+    private Set<Favorites> favorites;
 
     public AppUser(String userEmail, String encodedPassword, Integer userAge, String gender, String nickname, String role) {
         this.userEmail = userEmail;

@@ -1,9 +1,9 @@
-package k_webtoons.k_webtoons.service;
+package k_webtoons.k_webtoons.service.user;
 
-import k_webtoons.k_webtoons.model.AppUser;
-import k_webtoons.k_webtoons.model.UserRegisterDTO;
-import k_webtoons.k_webtoons.model.UserResponse;
-import k_webtoons.k_webtoons.repository.UserRepository;
+import k_webtoons.k_webtoons.model.user.AppUser;
+import k_webtoons.k_webtoons.model.user.UserRegisterDTO;
+import k_webtoons.k_webtoons.model.user.UserResponse;
+import k_webtoons.k_webtoons.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
