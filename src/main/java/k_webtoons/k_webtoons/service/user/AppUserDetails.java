@@ -1,6 +1,6 @@
-package k_webtoons.k_webtoons.service;
+package k_webtoons.k_webtoons.service.user;
 
-import k_webtoons.k_webtoons.model.AppUser;
+import k_webtoons.k_webtoons.model.user.AppUser;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-// AppUserDetails.java
+// 이곳에서 시큐리티에게 권한과 사용자 엔티티를 알려주고 있음 여기서 추가적인 권한 관련 로직 추가
 public class AppUserDetails implements UserDetails {
     private final AppUser user;
 
@@ -31,7 +31,6 @@ public class AppUserDetails implements UserDetails {
         return user.getUserEmail();
     }
 
-    // 나머지 메서드 구현
     public String getRole() {
         return user.getRole();
     }
