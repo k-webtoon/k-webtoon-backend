@@ -1,12 +1,12 @@
-package k_webtoons.k_webtoons.model.favorites;
+package k_webtoons.k_webtoons.model.likeWebtoonList;
 
 import jakarta.persistence.*;
 import k_webtoons.k_webtoons.model.user.AppUser;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
 
 @Entity
-@Table(name = "favorites")
-public class Favorites {
+@Table(name = "like_webtoon_list")
+public class LikeWebtoonList {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,4 +20,5 @@ public class Favorites {
     @ManyToOne
     @JoinColumn(name = "webtoon_id")
     private Webtoon webtoon;
+
 }

@@ -1,7 +1,8 @@
 package k_webtoons.k_webtoons.model.webtoon;
 
 import jakarta.persistence.*;
-import k_webtoons.k_webtoons.model.favorites.Favorites;
+import k_webtoons.k_webtoons.model.likeWebtoonList.LikeWebtoonList;
+import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
 import lombok.*;
 
 import java.util.List;
@@ -122,5 +123,10 @@ public class Webtoon {
     private Integer osmuOX;
 
     @OneToMany(mappedBy = "webtoon")
-    private Set<Favorites> favorites;
+    private Set<LikeWebtoonList> likeWebtoonLists;
+
+    @OneToMany(mappedBy = "webtoon")
+    private Set<WebtoonComment> webtoonComments;  // 웹툰에 달린 댓글 목록
+
+
 }

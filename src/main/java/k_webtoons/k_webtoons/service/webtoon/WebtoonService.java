@@ -56,4 +56,47 @@ public class WebtoonService {
                         webtoon.getStarScore()
                 ));
     }
+
+    // 작가로 웹툰 검색
+    public Page<WebtoonViewCountResponse> searchWebtoonsByAuthor(String author, int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<Webtoon> webtoons = webtoonRepository.findByAuthorContaining(author, pageable);
+
+        return webtoons.map(webtoon ->
+                new WebtoonViewCountResponse(
+                        webtoon.getId(),
+                        webtoon.getTitleId(),
+                        webtoon.getTitleName(),
+                        webtoon.getAuthor(),
+                        webtoon.getAdult(),
+                        webtoon.getAge(),
+                        webtoon.getFinish(),
+                        webtoon.getThumbnailUrl(),
+                        webtoon.getSynopsis(),
+                        webtoon.getRankGenreTypes(),
+                        webtoon.getStarScore()
+                ));
+    }
+
+    // 테그로 웹툰 검색
+    public Page<WebtoonViewCountResponse> searchWebtoonsByTags(String tags, int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<Webtoon> webtoons = webtoonRepository.findByTag(tags, pageable);
+
+        return webtoons.map(webtoon ->
+                new WebtoonViewCountResponse(
+                        webtoon.getId(),
+                        webtoon.getTitleId(),
+                        webtoon.getTitleName(),
+                        webtoon.getAuthor(),
+                        webtoon.getAdult(),
+                        webtoon.getAge(),
+                        webtoon.getFinish(),
+                        webtoon.getThumbnailUrl(),
+                        webtoon.getSynopsis(),
+                        webtoon.getRankGenreTypes(),
+                        webtoon.getStarScore()
+                ));
+    }
+
 }
