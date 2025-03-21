@@ -42,6 +42,7 @@ public class WebtoonComment {
     private LocalDateTime deletedDateTime; // 댓글 삭제 시간 (삭제된 경우 해당 시간 기록)
 
     @OneToMany(mappedBy = "webtoonComment", cascade = CascadeType.ALL , orphanRemoval = true)
+    @Builder.Default
     private List<CommentLike> likes = new ArrayList<>();
 
     @PrePersist
