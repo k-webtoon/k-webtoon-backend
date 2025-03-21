@@ -1,7 +1,8 @@
 package k_webtoons.k_webtoons.model.user;
 
 import jakarta.persistence.*;
-import k_webtoons.k_webtoons.model.favorites.Favorites;
+import k_webtoons.k_webtoons.model.likeWebtoonList.LikeWebtoonList;
+import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -43,7 +44,10 @@ public class AppUser {
     private String role;
 
     @OneToMany(mappedBy = "appUser")
-    private Set<Favorites> favorites;
+    private Set<LikeWebtoonList> likeWebtoonLists ;
+
+    @OneToMany(mappedBy = "appUser")
+    private Set<WebtoonComment> webtoonComments;  // 사용자가 작성한 웹툰 댓글 목록
 
     public AppUser(String userEmail, String encodedPassword, Integer userAge, String gender, String nickname, String role) {
         this.userEmail = userEmail;

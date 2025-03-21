@@ -1,4 +1,4 @@
-package k_webtoons.k_webtoons.service.user;
+package k_webtoons.k_webtoons.security;
 
 import k_webtoons.k_webtoons.model.user.AppUser;
 import org.springframework.security.core.GrantedAuthority;

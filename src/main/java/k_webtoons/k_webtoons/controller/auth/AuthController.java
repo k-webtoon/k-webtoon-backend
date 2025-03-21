@@ -8,7 +8,7 @@ import k_webtoons.k_webtoons.model.user.LoginDTO;
 import k_webtoons.k_webtoons.model.user.UserRegisterDTO;
 import k_webtoons.k_webtoons.model.user.UserResponse;
 import k_webtoons.k_webtoons.security.JwtUtil;
-import k_webtoons.k_webtoons.service.user.AppUserDetails;
+import k_webtoons.k_webtoons.security.AppUserDetails;
 import k_webtoons.k_webtoons.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

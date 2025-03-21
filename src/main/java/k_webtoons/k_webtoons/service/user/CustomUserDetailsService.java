@@ -2,6 +2,7 @@ package k_webtoons.k_webtoons.service.user;
 
 import k_webtoons.k_webtoons.model.user.AppUser;
 import k_webtoons.k_webtoons.repository.user.UserRepository;
+import k_webtoons.k_webtoons.security.AppUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
