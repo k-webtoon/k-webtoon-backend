@@ -1,6 +1,7 @@
 package k_webtoons.k_webtoons.controller.webtoonComment;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -9,6 +10,8 @@ import k_webtoons.k_webtoons.model.webtoonComment.CommentRequestDTO;
 import k_webtoons.k_webtoons.model.webtoonComment.CommentResponseDTO;
 import k_webtoons.k_webtoons.service.webtoonComment.WebtoonCommentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -30,24 +33,40 @@ public class WebtoonCommentController {
             }
     )
     @PostMapping("/{webtoonId}")
-    public CommentResponseDTO add(@PathVariable Long webtoonId, @RequestBody CommentRequestDTO requestDto) {
-        return service.addComment(webtoonId, requestDto);
+    public ResponseEntity<CommentResponseDTO> add(@PathVariable Long webtoonId, @RequestBody CommentRequestDTO requestDto) {
+        CommentResponseDTO comment = service.addComment(webtoonId, requestDto);
+        return ResponseEntity.ok(comment);
     }
 
+    // 웹툰 ID로 댓글 목록 조회 API (페이징)
     @Operation(
-            summary = "댓글 조회 API",
-            description = "댓글 ID를 통해 특정 댓글을 조회합니다.",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "댓글 조회 성공",
-                            content = @Content(schema = @Schema(implementation = CommentResponseDTO.class))
-                    )
-            }
+            summary = "웹툰 ID로 댓글 목록 조회",
+            description = "웹툰 ID에 해당하는 댓글 목록을 페이지네이션 형태로 반환합니다."
     )
-    @GetMapping("/{id}")
-    public CommentResponseDTO get(@PathVariable Long id) {
-        return service.getCommentById(id);
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공적으로 댓글 목록 반환",
+                    content = @Content(schema = @Schema(implementation = CommentResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "웹툰을 찾을 수 없음"
+            )
+    })
+    @GetMapping("/{webtoonId}")
+    public ResponseEntity<Page<CommentResponseDTO>> getCommentsByWebtoonId(
+            @PathVariable Long webtoonId,
+            @Parameter(description = "페이지 번호 (기본값: 0)", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기 (기본값: 10)", example = "10")
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            Page<CommentResponseDTO> comments = service.getCommentsByWebtoonId(webtoonId, page, size);
+            return ResponseEntity.ok(comments);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @Operation(
@@ -67,9 +86,13 @@ public class WebtoonCommentController {
             }
     )
     @PutMapping("/{id}")
-    public String update(@PathVariable Long id, @RequestBody String content) {
-        service.updateComment(id, content);
-        return "댓글이 성공적으로 수정되었습니다.";
+    public ResponseEntity<String> update(@PathVariable Long id, @RequestBody String content) {
+        try {
+            service.updateComment(id, content);
+            return ResponseEntity.ok("댓글이 성공적으로 수정되었습니다.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(403).body("수정 권한이 없습니다.");
+        }
     }
 
     @Operation(
@@ -89,9 +112,13 @@ public class WebtoonCommentController {
             }
     )
     @DeleteMapping("/{id}")
-    public String delete(@PathVariable Long id) {
-        service.deleteComment(id);
-        return "댓글이 성공적으로 삭제되었습니다.";
+    public ResponseEntity<String> delete(@PathVariable Long id) {
+        try {
+            service.deleteComment(id);
+            return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(403).body("삭제 권한이 없습니다.");
+        }
     }
 
     @Operation(
@@ -111,9 +138,13 @@ public class WebtoonCommentController {
             }
     )
     @PostMapping("/{id}/like")
-    public String like(@PathVariable Long id) {
-        service.addLike(id);
-        return "좋아요가 추가되었습니다.";
+    public ResponseEntity<String> like(@PathVariable Long id) {
+        try {
+            service.addLike(id);
+            return ResponseEntity.ok("좋아요가 추가되었습니다.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("이미 좋아요를 누른 경우 또는 잘못된 요청입니다.");
+        }
     }
 
     @Operation(
@@ -133,8 +164,12 @@ public class WebtoonCommentController {
             }
     )
     @PostMapping("/{id}/unlike")
-    public String unlike(@PathVariable Long id) {
-        service.removeLike(id);
-        return "좋아요가 취소되었습니다.";
+    public ResponseEntity<String> unlike(@PathVariable Long id) {
+        try {
+            service.removeLike(id);
+            return ResponseEntity.ok("좋아요가 취소되었습니다.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("좋아요 기록이 없는 경우 또는 잘못된 요청입니다.");
+        }
     }
 }

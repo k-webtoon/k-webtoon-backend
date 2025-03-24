@@ -12,6 +12,9 @@ import k_webtoons.k_webtoons.repository.webtoonComment.CommentLikeRepository;
 import k_webtoons.k_webtoons.repository.webtoonComment.WebtoonCommentRepository;
 import k_webtoons.k_webtoons.security.HeaderValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -46,17 +49,24 @@ public class WebtoonCommentService {
     }
 
     // 댓글 조회
-    public CommentResponseDTO getCommentById(Long id) {
-        WebtoonComment comment = commentRepository.findByIdAndDeletedDateTimeIsNull(id)
-                .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
-        long likeCount = likeRepository.countByWebtoonComment(comment);
-        return new CommentResponseDTO(
-                comment.getId(),
-                comment.getContent(),
-                comment.getAppUser().getNickname(),
-                comment.getCreatedDate(),
-                likeCount
-        );
+    public Page<CommentResponseDTO> getCommentsByWebtoonId(Long webtoonId, int page, int size) {
+        Webtoon webtoon = webtoonRepository.findById(webtoonId)
+                .orElseThrow(() -> new RuntimeException("웹툰을 찾을 수 없습니다."));
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<WebtoonComment> comments = commentRepository.findByWebtoonAndDeletedDateTimeIsNull(webtoon, pageable);
+
+        return comments.map(comment -> {
+            long likeCount = likeRepository.countByWebtoonComment(comment);
+            return new CommentResponseDTO(
+                    comment.getId(),
+                    comment.getContent(),
+                    comment.getAppUser().getNickname(),
+                    comment.getCreatedDate(),
+                    likeCount
+            );
+        });
     }
 
     // 댓글 수정
