@@ -4,11 +4,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import k_webtoons.k_webtoons.model.webtoon.WebtoonDetailResponse;
 import k_webtoons.k_webtoons.model.webtoon.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.service.webtoon.WebtoonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -91,5 +93,19 @@ public class WebtoonController {
             @RequestParam(defaultValue = "10") int size) {
         return webtoonService.searchWebtoonsByTags(tagName, page, size);
     }
+
+        @Operation(
+            summary = "웹툰 상세 조회",
+            description = "idnum을 기반으로 웹툰 상세 정보를 불러옵니다."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공적으로 웹툰 상세 반환"),
+            @ApiResponse(responseCode = "404", description = "웹툰을 찾을 수 없음")
+    })
+    @GetMapping("/webtoons/{id}")
+    public WebtoonDetailResponse getWebtoonDetail(@PathVariable Long id) {
+        return webtoonService.getWebtoonDetail(id);
+    }
+
 
 }

@@ -1,6 +1,8 @@
 package k_webtoons.k_webtoons.service.webtoon;
 
+import k_webtoons.k_webtoons.exception.WebtoonNotFoundException;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
+import k_webtoons.k_webtoons.model.webtoon.WebtoonDetailResponse;
 import k_webtoons.k_webtoons.model.webtoon.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,4 +101,38 @@ public class WebtoonService {
                 ));
     }
 
+    public WebtoonDetailResponse getWebtoonDetail(Long id) {
+        Webtoon webtoon = webtoonRepository.findById(id)
+                .orElseThrow(() -> new WebtoonNotFoundException("해당 ID의 웹툰이 존재하지 않습니다."));
+
+        return new WebtoonDetailResponse(
+                webtoon.getId(),
+                webtoon.getTitleName(),
+                webtoon.getAuthor(),
+                webtoon.getThumbnailUrl(),
+                webtoon.getSynopsis(),
+                webtoon.getAge(),
+                String.format("%.2f", webtoon.getStarScore() != null ? webtoon.getStarScore() : 0.0),
+                toBool(webtoon.getOsmuAnime()),
+                toBool(webtoon.getOsmuDrama()),
+                toBool(webtoon.getOsmuGame()),
+                toBool(webtoon.getOsmuMovie()),
+                toBool(webtoon.getOsmuOX()),
+                toBool(webtoon.getOsmuPlay()),
+                webtoon.getFinish(),
+                webtoon.getAdult(),
+                webtoon.getGenre(),
+                webtoon.getTags(),
+                webtoon.getArtistId()
+        );
+
+    }
+
+    private boolean toBool(Integer value) {
+        return value != null && value == 1;
+    }
+
+
 }
+
+
