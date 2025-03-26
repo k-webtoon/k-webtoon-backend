@@ -54,14 +54,24 @@ public class AppUser {
     @OneToMany(mappedBy = "appUser")
     private Set<WebtoonComment> webtoonComments;  // 사용자가 작성한 웹툰 댓글 목록
 
-    public AppUser(String userEmail, String encodedPassword, Integer userAge, String gender, String nickname, String role) {
+    @Column(unique = true)
+    private String phoneNumber;
+
+    private String securityQuestion;
+
+    @JsonIgnore
+    private String securityAnswer;
+
+    public AppUser(String userEmail, String userPassword, Integer userAge, String gender, String nickname, String role, String phoneNumber, String securityQuestion, String securityAnswer) {
         this.userEmail = userEmail;
-        this.userPassword = encodedPassword;
+        this.userPassword = userPassword;
         this.userAge = userAge;
         this.gender = gender;
         this.nickname = nickname;
         this.role = role;
-        this.createDateTime = LocalDateTime.now();
+        this.phoneNumber = phoneNumber;
+        this.securityQuestion = securityQuestion;
+        this.securityAnswer = securityAnswer;
     }
 
     // Spring Security 권한 처리
