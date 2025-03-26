@@ -1,7 +1,8 @@
 package k_webtoons.k_webtoons.service.webtoonComment;
 
 import jakarta.transaction.Transactional;
-import k_webtoons.k_webtoons.model.user.AppUser;
+import k_webtoons.k_webtoons.exception.CustomException;
+import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
 import k_webtoons.k_webtoons.model.webtoonComment.CommentLike;
 import k_webtoons.k_webtoons.model.webtoonComment.CommentRequestDTO;
@@ -132,5 +133,23 @@ public class WebtoonCommentService {
                 .orElseThrow(() -> new RuntimeException("좋아요 기록이 없습니다."));
 
         likeRepository.delete(like);
+    }
+
+
+    public CommentResponseDTO getCommentById(Long commentId) {
+        try {
+            WebtoonComment comment = commentRepository.findById(commentId)
+                    .orElseThrow(() -> new CustomException("댓글을 찾을 수 없습니다.", "COMMENT_NOT_FOUND"));
+
+            return new CommentResponseDTO(
+                    comment.getId(),
+                    comment.getContent(),
+                    comment.getAppUser().getNickname(),
+                    comment.getCreatedDate(),
+                    (long) comment.getLikes().size()
+            );
+        } catch (Exception e) {
+            throw new CustomException("댓글을 불러올 수 없습니다.", "COMMENT_ERROR");
+        }
     }
 }

@@ -4,10 +4,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import k_webtoons.k_webtoons.model.user.*;
+import k_webtoons.k_webtoons.model.auth.*;
 import k_webtoons.k_webtoons.security.JwtUtil;
 import k_webtoons.k_webtoons.security.AppUserDetails;
-import k_webtoons.k_webtoons.service.user.UserService;
+import k_webtoons.k_webtoons.service.auth.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final UserService userService;
+    private final AuthService authService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
 
@@ -42,7 +42,7 @@ public class AuthController {
     )
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@RequestBody UserRegisterDTO dto){
-        UserResponse response = userService.register(dto);
+        UserResponse response = authService.register(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -85,7 +85,7 @@ public class AuthController {
     )
     @PostMapping("/verifyPhoneNumber")
     public ResponseEntity<String> verifyPhoneNumber(@RequestBody VerifyPhoneNumberDTO request) {
-        String securityQuestion = userService.getSecurityQuestionByPhoneNumber(request);
+        String securityQuestion = authService.getSecurityQuestionByPhoneNumber(request);
         return ResponseEntity.ok(securityQuestion);
     }
 
@@ -103,7 +103,7 @@ public class AuthController {
     )
     @PostMapping("/findEmail")
     public ResponseEntity<String> findEmail(@RequestBody SecurityQuestionRequest request) {
-        String email = userService.findEmailBySecurityAnswer(request);
+        String email = authService.findEmailBySecurityAnswer(request);
         return ResponseEntity.ok(email);
     }
 
@@ -121,7 +121,7 @@ public class AuthController {
     )
     @PostMapping("/changePassword")
     public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
-        userService.changePassword(request);
+        authService.changePassword(request);
         return ResponseEntity.ok("Password changed successfully");
     }
 }

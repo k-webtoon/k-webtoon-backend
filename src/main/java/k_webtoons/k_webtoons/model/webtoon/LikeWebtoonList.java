@@ -1,11 +1,16 @@
-package k_webtoons.k_webtoons.model.likeWebtoonList;
+package k_webtoons.k_webtoons.model.webtoon;
 
 import jakarta.persistence.*;
-import k_webtoons.k_webtoons.model.user.AppUser;
-import k_webtoons.k_webtoons.model.webtoon.Webtoon;
+import k_webtoons.k_webtoons.model.auth.AppUser;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
 @Entity
 @Table(name = "like_webtoon_list")
+@AllArgsConstructor
+@NoArgsConstructor
 public class LikeWebtoonList {
 
     @Id
@@ -21,4 +26,8 @@ public class LikeWebtoonList {
     @JoinColumn(name = "webtoon_id")
     private Webtoon webtoon;
 
+    public LikeWebtoonList(AppUser appUser, Webtoon webtoon) {
+        this.appUser = appUser;
+        this.webtoon = webtoon;
+    }
 }

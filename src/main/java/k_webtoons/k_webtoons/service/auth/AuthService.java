@@ -1,23 +1,21 @@
-package k_webtoons.k_webtoons.service.user;
+package k_webtoons.k_webtoons.service.auth;
 
-import k_webtoons.k_webtoons.model.user.*;
+import k_webtoons.k_webtoons.model.auth.*;
 import k_webtoons.k_webtoons.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    public List<AppUser> getAllUsers() {
-        return userRepository.findAll();  // 🔹 이 코드가 전체 유저를 DB에서 조회함
-    }
+
+    // 회원가입
     public UserResponse register(UserRegisterDTO dto) {
         if (userRepository.existsByUserEmail(dto.userEmail())) {
             throw new RuntimeException("이미 사용중인 이메일입니다.");
@@ -89,4 +87,23 @@ public class UserService {
             throw new RuntimeException(e.getMessage());
         }
     }
+
+    public AppUser getAuthenticatedUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (!(principal instanceof UserDetails)){
+            throw  new RuntimeException("인증되지 않은 사용자입니다.");
+        }
+
+        String userEmail = ((UserDetails) principal).getUsername();
+        return userRepository.findByUserEmail(userEmail).orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+    }
+
+    // 여기서부턴 로직용 함수
+
+    public AppUser getUserByUserId(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+    }
+
 }

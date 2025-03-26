@@ -1,7 +1,6 @@
 package k_webtoons.k_webtoons.model.webtoon;
 
 import jakarta.persistence.*;
-import k_webtoons.k_webtoons.model.likeWebtoonList.LikeWebtoonList;
 import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
 import lombok.*;
 

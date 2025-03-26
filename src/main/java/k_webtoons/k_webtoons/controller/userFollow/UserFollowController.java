@@ -3,7 +3,7 @@ package k_webtoons.k_webtoons.controller.userFollow;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import k_webtoons.k_webtoons.model.user.AppUser;
+import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.service.user.UserFollowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -37,22 +37,6 @@ public class UserFollowController {
     ) {
         userFollowService.unfollow(followerId, followeeId);
         return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "팔로워 리스트 조회", description = "userId 사용자를 팔로우하는 유저들의 리스트를 반환합니다.")
-    @GetMapping("/{userId}/followers")
-    public List<AppUser> getFollowers(
-            @Parameter(description = "팔로워를 조회할 대상 유저 ID", example = "1") @PathVariable long userId
-    ) {
-        return userFollowService.getFollowers(userId);
-    }
-
-    @Operation(summary = "팔로잉 리스트 조회", description = "userId 사용자가 팔로우하고 있는 유저들의 리스트를 반환합니다.")
-    @GetMapping("/{userId}/followees")
-    public List<AppUser> getFollowees(
-            @Parameter(description = "팔로잉을 조회할 대상 유저 ID", example = "1") @PathVariable long userId
-    ) {
-        return userFollowService.getFollowees(userId);
     }
 
     @Operation(summary = "팔로워 수 조회", description = "userId 사용자의 팔로워 수를 반환합니다.")
