@@ -9,12 +9,11 @@ import k_webtoons.k_webtoons.model.webtoon.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.service.webtoon.WebtoonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("/api/webtoons")
 public class WebtoonController {
 
     @Autowired
@@ -28,13 +27,14 @@ public class WebtoonController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공적으로 웹툰 목록 반환")
     })
-    @GetMapping("/webtoons/top")
-    public Page<WebtoonViewCountResponse> getTopWebtoons(
+    @GetMapping("/top")
+    public ResponseEntity<Page<WebtoonViewCountResponse>> getTopWebtoons(
             @Parameter(description = "페이지 번호 (기본값: 0)", example = "0")
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기 (기본값: 10)", example = "10")
             @RequestParam(defaultValue = "10") int size) {
-        return webtoonService.getTopWebtoons(page, size);
+        Page<WebtoonViewCountResponse> webtoons = webtoonService.getTopWebtoons(page, size);
+        return ResponseEntity.ok(webtoons);
     }
 
     // 이름으로 웹툰 검색 API
@@ -45,15 +45,16 @@ public class WebtoonController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공적으로 웹툰 검색 결과 반환")
     })
-    @GetMapping("/webtoons/search/name")
-    public Page<WebtoonViewCountResponse> searchWebtoonsByName(
+    @GetMapping("/search/name")
+    public ResponseEntity<Page<WebtoonViewCountResponse>> searchWebtoonsByName(
             @Parameter(description = "검색할 웹툰 제목", required = true, example = "웹툰 제목(ex: 마음의 소리)")
             @RequestParam String titleName,
             @Parameter(description = "페이지 번호 (기본값: 0)", example = "0")
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기 (기본값: 10)", example = "10")
             @RequestParam(defaultValue = "10") int size) {
-        return webtoonService.searchWebtoonsByName(titleName, page, size);
+        Page<WebtoonViewCountResponse> webtoons = webtoonService.searchWebtoonsByName(titleName, page, size);
+        return ResponseEntity.ok(webtoons);
     }
 
     // 작가로 웹툰 검색 API
@@ -64,15 +65,16 @@ public class WebtoonController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공적으로 웹툰 검색 결과 반환")
     })
-    @GetMapping("/webtoons/search/author")
-    public Page<WebtoonViewCountResponse> searchWebtoonsByAuthor(
+    @GetMapping("/search/author")
+    public ResponseEntity<Page<WebtoonViewCountResponse>> searchWebtoonsByAuthor(
             @Parameter(description = "검색할 작가", required = true, example = "작가(ex: 조석)")
             @RequestParam String authorName,
             @Parameter(description = "페이지 번호 (기본값: 0)", example = "0")
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기 (기본값: 10)", example = "10")
             @RequestParam(defaultValue = "10") int size) {
-        return webtoonService.searchWebtoonsByAuthor(authorName, page, size);
+        Page<WebtoonViewCountResponse> webtoons = webtoonService.searchWebtoonsByAuthor(authorName, page, size);
+        return ResponseEntity.ok(webtoons);
     }
 
     // 테그로 웹툰 검색 API
@@ -83,18 +85,20 @@ public class WebtoonController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공적으로 웹툰 검색 결과 반환")
     })
-    @GetMapping("/webtoons/search/tag")
-    public Page<WebtoonViewCountResponse> searchWebtoonsByTags(
+    @GetMapping("/search/tag")
+    public ResponseEntity<Page<WebtoonViewCountResponse>> searchWebtoonsByTags(
             @Parameter(description = "검색할 테그", required = true, example = "테그(ex: 하이틴)")
             @RequestParam String tagName,
             @Parameter(description = "페이지 번호 (기본값: 0)", example = "0")
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기 (기본값: 10)", example = "10")
             @RequestParam(defaultValue = "10") int size) {
-        return webtoonService.searchWebtoonsByTags(tagName, page, size);
+        Page<WebtoonViewCountResponse> webtoons = webtoonService.searchWebtoonsByTags(tagName, page, size);
+        return ResponseEntity.ok(webtoons);
     }
 
-        @Operation(
+    // 웹툰 id로 상세검색
+    @Operation(
             summary = "웹툰 상세 조회",
             description = "idnum을 기반으로 웹툰 상세 정보를 불러옵니다."
     )
@@ -102,10 +106,9 @@ public class WebtoonController {
             @ApiResponse(responseCode = "200", description = "성공적으로 웹툰 상세 반환"),
             @ApiResponse(responseCode = "404", description = "웹툰을 찾을 수 없음")
     })
-    @GetMapping("/webtoons/{id}")
-    public WebtoonDetailResponse getWebtoonDetail(@PathVariable Long id) {
-        return webtoonService.getWebtoonDetail(id);
+    @GetMapping("/{id}")
+    public ResponseEntity<WebtoonDetailResponse> getWebtoonDetail(@PathVariable Long id) {
+        WebtoonDetailResponse webtoon = webtoonService.getWebtoonDetail(id);
+        return ResponseEntity.ok(webtoon);
     }
-
-
 }
