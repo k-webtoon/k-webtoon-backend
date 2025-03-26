@@ -27,7 +27,7 @@ public class DataInitializer implements ApplicationRunner {
             return;  // DB에 데이터가 있으면 CSV 파일을 불러오지 않고 종료
         }
 
-        String csvFilePath = "D:\\NAVER-Webtoon_OSMU.xlsx - final_finished_dataset.csv";
+        String csvFilePath = "C:\\NAVER-Webtoon_OSMU.xlsx - final_finished_dataset.csv";
         logger.info("웹툰 데이터를 CSV 파일에서 DB로 가져오는 중...");
         webtoonCsvImportService.saveWebtoonsFromCSV(csvFilePath);
         logger.info("웹툰 데이터 초기화 완료.");

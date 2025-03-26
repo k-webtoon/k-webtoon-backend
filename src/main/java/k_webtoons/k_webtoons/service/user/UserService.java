@@ -9,13 +9,17 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
+    public List<AppUser> getAllUsers() {
+        return userRepository.findAll();  // 🔹 이 코드가 전체 유저를 DB에서 조회함
+    }
     public UserResponse register(UserRegisterDTO dto) {
         if (userRepository.existsByUserEmail(dto.userEmail())) {
             throw new RuntimeException("이미 사용중인 이메일입니다.");
