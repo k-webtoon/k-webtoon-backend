@@ -1,8 +1,6 @@
 package k_webtoons.k_webtoons.service.user;
 
-import k_webtoons.k_webtoons.model.user.AppUser;
-import k_webtoons.k_webtoons.model.user.UserRegisterDTO;
-import k_webtoons.k_webtoons.model.user.UserResponse;
+import k_webtoons.k_webtoons.model.user.*;
 import k_webtoons.k_webtoons.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,7 +31,10 @@ public class UserService {
                 dto.userAge(),
                 dto.gender(),
                 dto.nickname(),
-                role
+                role,
+                dto.phoneNumber(),
+                dto.securityQuestion(),
+                dto.securityAnswer()
         );
 
         AppUser savedAppUser = userRepository.save(newAppUser);
@@ -45,10 +46,47 @@ public class UserService {
         );
     }
 
-    public String getUserRoleByEmail(String email) {
-        AppUser user = userRepository.findByUserEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없음"));
-        System.out.println("role 은 : " +user.getRole());
-        return user.getRole();
+    // 전화번호로 보안질문 검색
+    public String getSecurityQuestionByPhoneNumber(VerifyPhoneNumberDTO request) {
+        try {
+            AppUser user = userRepository.findByPhoneNumber(request.phoneNumber())
+                    .orElseThrow(() -> new RuntimeException("전화번호가 없습니다."));
+            return user.getSecurityQuestion();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    // 보안답변으로 이메일 찾기
+    public String findEmailBySecurityAnswer(SecurityQuestionRequest request) {
+        try {
+            AppUser user = userRepository.findByPhoneNumber(request.phoneNumber())
+                    .orElseThrow(() -> new RuntimeException("전화번호가 없습니다."));
+
+            if (user.getSecurityQuestion().equals(request.securityQuestion()) && user.getSecurityAnswer().equals(request.securityAnswer())) {
+                return user.getUserEmail();
+            } else {
+                throw new RuntimeException("잘못된 답변입니다.");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    // 보안답변으로 비밀번호 변경
+    public void changePassword(ChangePasswordRequest request) {
+        try {
+            AppUser user = userRepository.findByUserEmail(request.userEmail())
+                    .orElseThrow(() -> new RuntimeException("이메일이 없습니다."));
+
+            if (user.getPhoneNumber().equals(request.phoneNumber()) && user.getSecurityQuestion().equals(request.securityQuestion()) && user.getSecurityAnswer().equals(request.securityAnswer())) {
+                user.setUserPassword(passwordEncoder.encode(request.newPassword()));
+                userRepository.save(user);
+            } else {
+                throw new RuntimeException("잘못된 답변입니다.");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 }

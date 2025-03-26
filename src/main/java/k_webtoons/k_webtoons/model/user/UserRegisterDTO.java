@@ -5,6 +5,9 @@ public record UserRegisterDTO(
         String userPassword,
         Integer userAge,
         String gender,
-        String nickname
+        String nickname,
+        String phoneNumber,
+        String securityQuestion,
+        String securityAnswer
 ) {
 }

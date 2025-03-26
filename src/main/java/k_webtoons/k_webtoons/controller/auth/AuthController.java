@@ -4,9 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import k_webtoons.k_webtoons.model.user.LoginDTO;
-import k_webtoons.k_webtoons.model.user.UserRegisterDTO;
-import k_webtoons.k_webtoons.model.user.UserResponse;
+import k_webtoons.k_webtoons.model.user.*;
 import k_webtoons.k_webtoons.security.JwtUtil;
 import k_webtoons.k_webtoons.security.AppUserDetails;
 import k_webtoons.k_webtoons.service.user.UserService;
@@ -30,11 +28,10 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
 
-
     // 회원가입
     @Operation(
             summary = "회원가입 API",
-            description = "사용자가 이메일, 비밀번호, 나이, 성별, 닉네임을 제공하여 회원가입합니다.",
+            description = "사용자가 이메일, 비밀번호, 나이, 성별, 닉네임, 전화번호, 보안 질문 및 답변을 제공하여 회원가입합니다.",
             responses = {
                     @ApiResponse(
                             responseCode = "201",
@@ -46,10 +43,10 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@RequestBody UserRegisterDTO dto){
         UserResponse response = userService.register(dto);
-        return  ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    //로그인
+    // 로그인
     @Operation(
             summary = "로그인 API",
             description = "사용자가 이메일과 비밀번호를 제공하여 로그인하고 JWT 토큰을 반환받습니다.",
@@ -72,5 +69,59 @@ public class AuthController {
 
         String token = jwtUtil.generateToken(dto.userEmail(), role);
         return ResponseEntity.ok(token);
+    }
+
+    // 전화번호 인증
+    @Operation(
+            summary = "전화번호 인증 API",
+            description = "전화번호를 인증하고 보안 질문을 반환합니다.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "전화번호 인증 성공 및 보안 질문 반환",
+                            content = @Content(schema = @Schema(implementation = String.class))
+                    )
+            }
+    )
+    @PostMapping("/verifyPhoneNumber")
+    public ResponseEntity<String> verifyPhoneNumber(@RequestBody VerifyPhoneNumberDTO request) {
+        String securityQuestion = userService.getSecurityQuestionByPhoneNumber(request);
+        return ResponseEntity.ok(securityQuestion);
+    }
+
+    // 이메일 찾기
+    @Operation(
+            summary = "이메일 찾기 API",
+            description = "전화번호와 보안 질문 및 답변을 제공하여 이메일을 찾습니다.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "이메일 찾기 성공",
+                            content = @Content(schema = @Schema(implementation = String.class))
+                    )
+            }
+    )
+    @PostMapping("/findEmail")
+    public ResponseEntity<String> findEmail(@RequestBody SecurityQuestionRequest request) {
+        String email = userService.findEmailBySecurityAnswer(request);
+        return ResponseEntity.ok(email);
+    }
+
+    // 비밀번호 변경
+    @Operation(
+            summary = "비밀번호 변경 API",
+            description = "이메일과 함께 전화번호 및 보안 질문/답변을 제공하여 비밀번호를 변경합니다.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "비밀번호 변경 성공",
+                            content = @Content(schema = @Schema(implementation = String.class))
+                    )
+            }
+    )
+    @PostMapping("/changePassword")
+    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
+        userService.changePassword(request);
+        return ResponseEntity.ok("Password changed successfully");
     }
 }
