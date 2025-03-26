@@ -12,7 +12,11 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
+
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Getter
 @Setter
@@ -27,6 +31,7 @@ public class AppUser {
     @Column(nullable = false, unique = true)
     private String userEmail;
 
+    @JsonIgnore  // ✅ 민감 정보 숨기기
     @Column(nullable = false)
     private String userPassword;
 
