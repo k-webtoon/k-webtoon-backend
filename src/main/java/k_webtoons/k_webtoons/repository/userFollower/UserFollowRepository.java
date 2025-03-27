@@ -1,6 +1,6 @@
 package k_webtoons.k_webtoons.repository.userFollower;
 
-import k_webtoons.k_webtoons.model.user.AppUser;
+import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.user_follow.UserFollow;
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -1,7 +1,7 @@
-package k_webtoons.k_webtoons.model.user;
+package k_webtoons.k_webtoons.model.auth;
 
 import jakarta.persistence.*;
-import k_webtoons.k_webtoons.model.likeWebtoonList.LikeWebtoonList;
+import k_webtoons.k_webtoons.model.webtoon.LikeWebtoonList;
 import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -52,7 +52,7 @@ public class AppUser {
     private Set<LikeWebtoonList> likeWebtoonLists ;
 
     @OneToMany(mappedBy = "appUser")
-    private Set<WebtoonComment> webtoonComments;  // 사용자가 작성한 웹툰 댓글 목록
+    private List<WebtoonComment> webtoonComments;  // 사용자가 작성한 웹툰 댓글 목록
 
     @Column(unique = true)
     private String phoneNumber;

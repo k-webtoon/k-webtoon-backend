@@ -128,6 +128,20 @@ public class WebtoonService {
 
     }
 
+
+    // 여기서부턴 로직용 함수
+
+    public String getWebtoonTitleById(Long webtoonId) {
+        Webtoon webtoon = webtoonRepository.findById(webtoonId)
+                .orElseThrow(() -> new WebtoonNotFoundException("해당 ID의 웹툰이 존재하지 않습니다."));
+        return webtoon.getTitleName();
+    }
+
+    public Webtoon getWebtoonById(Long webtoonId) {
+        return webtoonRepository.findById(webtoonId)
+                .orElseThrow(() -> new RuntimeException("웹툰을 찾을 수 없습니다."));
+    }
+
     private boolean toBool(Integer value) {
         return value != null && value == 1;
     }

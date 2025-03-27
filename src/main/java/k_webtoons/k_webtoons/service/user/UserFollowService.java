@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import jakarta.persistence.EntityNotFoundException;
-import k_webtoons.k_webtoons.model.user.AppUser;
+import k_webtoons.k_webtoons.exception.CustomException;
+import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.user_follow.UserFollow;
 import k_webtoons.k_webtoons.repository.user.UserRepository;
 import k_webtoons.k_webtoons.repository.userFollower.UserFollowRepository;
+import k_webtoons.k_webtoons.service.auth.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,41 +21,62 @@ public class UserFollowService {
 
     private final UserFollowRepository userFollowRepository;
     private final UserRepository appUserRepository;
+    private final AuthService authService;
 
     public void follow(long followerId, long followeeId) {
-        if (followerId == followeeId) {
-            throw new IllegalArgumentException("자기 자신은 팔로우할 수 없습니다.");
-        }
+        try {
+            AppUser authenticatedUser = authService.getAuthenticatedUser();
 
-        AppUser follower = appUserRepository.findById(followerId)
-                .orElseThrow(() -> new EntityNotFoundException("팔로워 유저 없음"));
-        AppUser followee = appUserRepository.findById(followeeId)
-                .orElseThrow(() -> new EntityNotFoundException("팔로이 유저 없음"));
+            if (authenticatedUser.getIndexId() != followerId) {
+                throw new CustomException("권한이 없습니다.", "UNAUTHORIZED");
+            }
 
-        boolean exists = userFollowRepository.existsByFollowerAndFollowee(follower, followee);
-        if (!exists) {
-            UserFollow follow = UserFollow.builder()
-                    .follower(follower)
-                    .followee(followee)
-                    .followedAt(LocalDateTime.now())
-                    .build();
-            userFollowRepository.save(follow);
+            if (followerId == followeeId) {
+                throw new IllegalArgumentException("자기 자신은 팔로우할 수 없습니다.");
+            }
+
+            AppUser follower = appUserRepository.findById(followerId)
+                    .orElseThrow(() -> new EntityNotFoundException("팔로워 유저 없음"));
+            AppUser followee = appUserRepository.findById(followeeId)
+                    .orElseThrow(() -> new EntityNotFoundException("팔로이 유저 없음"));
+
+            boolean exists = userFollowRepository.existsByFollowerAndFollowee(follower, followee);
+            if (!exists) {
+                UserFollow follow = UserFollow.builder()
+                        .follower(follower)
+                        .followee(followee)
+                        .followedAt(LocalDateTime.now())
+                        .build();
+                userFollowRepository.save(follow);
+            }
+        } catch (Exception e) {
+            throw new CustomException("팔로우 작업 중 오류가 발생했습니다.", "FOLLOW_ERROR");
         }
     }
 
     @Transactional
     public void unfollow(int followerId, int followeeId) {
-        AppUser follower = appUserRepository.findById((long) followerId)
-                .orElseThrow(() -> new EntityNotFoundException("팔로워 유저 없음"));
-        AppUser followee = appUserRepository.findById((long) followeeId)
-                .orElseThrow(() -> new EntityNotFoundException("팔로이 유저 없음"));
+        try {
+            AppUser authenticatedUser = authService.getAuthenticatedUser();
 
-        boolean exists = userFollowRepository.existsByFollowerAndFollowee(follower, followee);
-        if (!exists) {
-            throw new IllegalStateException("팔로우 관계가 존재하지 않습니다.");
+            if (authenticatedUser.getIndexId() != followerId) {
+                throw new CustomException("권한이 없습니다.", "UNAUTHORIZED");
+            }
+
+            AppUser follower = appUserRepository.findById((long) followerId)
+                    .orElseThrow(() -> new EntityNotFoundException("팔로워 유저 없음"));
+            AppUser followee = appUserRepository.findById((long) followeeId)
+                    .orElseThrow(() -> new EntityNotFoundException("팔로이 유저 없음"));
+
+            boolean exists = userFollowRepository.existsByFollowerAndFollowee(follower, followee);
+            if (!exists) {
+                throw new IllegalStateException("팔로우 관계가 존재하지 않습니다.");
+            }
+
+            userFollowRepository.deleteByFollowerAndFollowee(follower, followee);
+        } catch (Exception e) {
+            throw new CustomException("언팔로우 작업 중 오류가 발생했습니다.", "UNFOLLOW_ERROR");
         }
-
-        userFollowRepository.deleteByFollowerAndFollowee(follower, followee);
     }
 
     public List<AppUser> getFollowers(long userId) {

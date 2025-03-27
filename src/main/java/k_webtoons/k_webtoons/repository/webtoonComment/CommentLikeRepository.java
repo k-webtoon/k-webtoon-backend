@@ -1,6 +1,6 @@
 package k_webtoons.k_webtoons.repository.webtoonComment;
 
-import k_webtoons.k_webtoons.model.user.AppUser;
+import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.webtoonComment.CommentLike;
 import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
 import org.springframework.data.jpa.repository.JpaRepository;

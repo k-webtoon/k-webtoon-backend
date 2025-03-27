@@ -1,6 +1,6 @@
 package k_webtoons.k_webtoons.security;
 
-import k_webtoons.k_webtoons.model.user.AppUser;
+import k_webtoons.k_webtoons.model.auth.AppUser;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

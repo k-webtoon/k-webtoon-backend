@@ -1,7 +1,7 @@
 package k_webtoons.k_webtoons.model.webtoonComment;
 
 import jakarta.persistence.*;
-import k_webtoons.k_webtoons.model.user.AppUser;
+import k_webtoons.k_webtoons.model.auth.AppUser;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

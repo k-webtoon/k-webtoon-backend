@@ -2,7 +2,7 @@ package k_webtoons.k_webtoons.model.user_follow;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import k_webtoons.k_webtoons.model.user.AppUser;
+import k_webtoons.k_webtoons.model.auth.AppUser;
 import lombok.*;
 
 import java.time.LocalDateTime;
