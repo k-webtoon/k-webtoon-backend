@@ -20,7 +20,7 @@ public class WebtoonService {
     // 조회수 높은 웹툰 리스트 조회
     public Page<WebtoonViewCountResponse> getTopWebtoons(int page, int size) {
         PageRequest pageable = PageRequest.of(page, size);
-        Page<Webtoon> webtoons = webtoonRepository.findAllByOrderByViewCountDesc(pageable);
+        Page<Webtoon> webtoons = webtoonRepository.findAllByOrderByFavoriteCountDesc(pageable);
 
         return webtoons.map(webtoon ->
                 new WebtoonViewCountResponse(
@@ -113,7 +113,7 @@ public class WebtoonService {
                 webtoon.getSynopsis(),
                 webtoon.getAge(),
                 String.format("%.2f", webtoon.getStarScore() != null ? webtoon.getStarScore() : 0.0),
-                toBool(webtoon.getOsmuAnime()),
+                toBool(webtoon.getOsmuAnime()),  // Integer -> boolean 변환
                 toBool(webtoon.getOsmuDrama()),
                 toBool(webtoon.getOsmuGame()),
                 toBool(webtoon.getOsmuMovie()),
@@ -125,9 +125,7 @@ public class WebtoonService {
                 webtoon.getTags(),
                 webtoon.getArtistId()
         );
-
     }
-
 
     // 여기서부턴 로직용 함수
 

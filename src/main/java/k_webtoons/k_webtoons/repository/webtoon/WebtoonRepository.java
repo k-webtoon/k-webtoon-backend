@@ -15,7 +15,7 @@ public interface WebtoonRepository extends JpaRepository<Webtoon, Long> {
     Optional<Webtoon> findByTitleId(Long titleId);
 
     // 조회수 기준 내림차순 정렬
-    Page<Webtoon> findAllByOrderByViewCountDesc(Pageable pageable);
+    Page<Webtoon> findAllByOrderByFavoriteCountDesc(Pageable pageable);
 
     // 이름으로 검색 (대소문자 구분 없이 부분 일치)
     Page<Webtoon> findByTitleNameContainingIgnoreCase(String titleName, Pageable pageable);

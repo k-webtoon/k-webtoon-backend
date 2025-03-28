@@ -24,13 +24,11 @@ public class WebtoonCsvImportService {
     @Autowired
     private WebtoonRepository webtoonRepository;
 
-    // CSV 리스트 파싱 메서드
     private List<String> parseCsvList(String value) {
         if (!StringUtils.hasText(value)) return Collections.emptyList();
-
         return Arrays.stream(value
-                        .replaceAll("[\\[\\]']", "")  // 대괄호 및 작은따옴표 제거
-                        .split(",\\s*"))              // 쉼표+공백 기준 분리
+                        .replaceAll("[\\[\\]'\"]", "")
+                        .split(",\\s*"))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
@@ -41,10 +39,9 @@ public class WebtoonCsvImportService {
         return titleName.replace("[드라마원작]", "").trim();
     }
 
-    // synopsis 필터링 메서드 추가
     private String cleanSynopsis(String synopsis) {
         if (!StringUtils.hasText(synopsis)) return "";
-        return synopsis.replace("\n", " ").trim(); // 줄바꿈을 공백으로 대체하고 앞뒤 공백 제거
+        return synopsis.replace("\n", " ").trim();
     }
 
     public void saveWebtoonsFromCSV(String csvFilePath) throws IOException, CsvException {
@@ -54,7 +51,7 @@ public class WebtoonCsvImportService {
                     .withCSVParser(parser)
                     .build();
 
-            String[] headers = csvReader.readNext(); // 헤더 추출
+            String[] headers = csvReader.readNext();
 
             String[] nextLine;
             while ((nextLine = csvReader.readNext()) != null) {
@@ -68,29 +65,29 @@ public class WebtoonCsvImportService {
                         .age(nextLine[6])
                         .finish(parseBoolean(nextLine[7]))
                         .thumbnailUrl(nextLine[8])
-                        .synopsis(cleanSynopsis(nextLine[9])) // 필터링된 synopsis 사용
+                        .synopsis(cleanSynopsis(nextLine[9]))
                         .genre(parseCsvList(nextLine[10]))
                         .rankGenreTypes(parseCsvList(nextLine[11]))
                         .tags(parseCsvList(nextLine[12]))
-                        .totalCount(parseLong(nextLine[13]))
-                        .viewCount(parseLong(nextLine[14]))
-                        .starScore(parseDouble(nextLine[15]))
-                        .favoriteCount(parseLong(nextLine[16]))
-                        .starStdDeviation(parseDouble(nextLine[17]))
-                        .likeMeanValue(parseDouble(nextLine[18]))
-                        .likeStdDeviation(parseDouble(nextLine[19]))
-                        .commentsMeanValue(parseDouble(nextLine[20]))
-                        .commentsStdDeviation(parseDouble(nextLine[21]))
-                        .collectedNumOfEpi(parseInteger(nextLine[22]))
-                        .numOfWorks(parseInteger(nextLine[23]))
-                        .numsOfWork2(parseInteger(nextLine[24]))
-                        .writersFavorAverage(parseDouble(nextLine[25]))
-                        .osmuMovie(parseInteger(nextLine[26]))
-                        .osmuDrama(parseInteger(nextLine[27]))
-                        .osmuAnime(parseInteger(nextLine[28]))
-                        .osmuPlay(parseInteger(nextLine[29]))
-                        .osmuGame(parseInteger(nextLine[30]))
-                        .osmuOX(parseInteger(nextLine[31]))
+                        .totalCount(parseDouble(nextLine[13]))
+                        .starScore(parseDouble(nextLine[14]))
+                        .favoriteCount(parseDouble(nextLine[15]))
+                        .starStdDeviation(parseDouble(nextLine[16]))
+                        .likeMeanValue(parseDouble(nextLine[17]))
+                        .likeStdDeviation(parseDouble(nextLine[18]))
+                        .commentsMeanValue(parseDouble(nextLine[19]))
+                        .commentsStdDeviation(parseDouble(nextLine[20]))
+                        .collectedNumOfEpi(parseDouble(nextLine[21]))
+                        .numOfWorks(parseDouble(nextLine[22]))
+                        .numsOfWork2(parseDouble(nextLine[23]))
+                        .writersFavorAverage(parseDouble(nextLine[24]))
+                        .osmuMovie(parseInteger(nextLine[25]))
+                        .osmuDrama(parseInteger(nextLine[26]))
+                        .osmuAnime(parseInteger(nextLine[27]))
+                        .osmuPlay(parseInteger(nextLine[28]))
+                        .osmuGame(parseInteger(nextLine[29]))
+                        .osmuOX(parseInteger(nextLine[30]))
+                        .synopVec(parseVector(nextLine[31]))
                         .build();
 
                 webtoonRepository.save(webtoon);
@@ -98,33 +95,40 @@ public class WebtoonCsvImportService {
         }
     }
 
-    // Helper methods
-    private Boolean parseBoolean(String value) {
-        return "TRUE".equalsIgnoreCase(value) || "1".equals(value);
-    }
-
-    private Long parseLong(String value) {
-        if (!StringUtils.hasText(value)) return 0L;
-        try {
-            return Long.parseLong(value.trim());
-        } catch (NumberFormatException e) {
-            return 0L;
-        }
-    }
-
     private Integer parseInteger(String value) {
-        if (!StringUtils.hasText(value)) return 0;
         try {
-            return Integer.parseInt(value.trim());
+            return StringUtils.hasText(value) ? (int) Double.parseDouble(value) : 0;
         } catch (NumberFormatException e) {
             return 0;
         }
     }
 
-    private Double parseDouble(String value) {
-        if (!StringUtils.hasText(value)) return 0.0;
+    private float[] parseVector(String vectorString) {
+        if (!StringUtils.hasText(vectorString)) return new float[0];
+        String[] parts = vectorString.replaceAll("[\\[\\]]", "").trim().split("\\s+");
+        float[] vector = new float[parts.length];
+        for (int i = 0; i < parts.length; i++) {
+            vector[i] = Float.parseFloat(parts[i]);
+        }
+        return vector;
+    }
+
+    private Boolean parseBoolean(String value) {
+        if (value == null) return false;
+        return value.equals("1.0");
+    }
+
+    private Long parseLong(String value) {
         try {
-            return Double.parseDouble(value.trim());
+            return StringUtils.hasText(value) ? (long) Double.parseDouble(value) : 0L;
+        } catch (NumberFormatException e) {
+            return 0L;
+        }
+    }
+
+    private Double parseDouble(String value) {
+        try {
+            return StringUtils.hasText(value) ? Double.parseDouble(value) : 0.0;
         } catch (NumberFormatException e) {
             return 0.0;
         }
