@@ -79,35 +79,31 @@ public class UserFollowService {
         }
     }
 
+    // 팔로워 목록 조회 (어드민 제외)
     public List<AppUser> getFollowers(long userId) {
-        AppUser user = appUserRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("유저 없음"));
-
+        AppUser user = authService.getUserByUserIdNotAdmin(userId);
         return userFollowRepository.findByFollowee(user).stream()
                 .map(UserFollow::getFollower)
                 .collect(Collectors.toList());
     }
 
+    // 팔로잉 목록 조회 (어드민 제외)
     public List<AppUser> getFollowees(long userId) {
-        AppUser user = appUserRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("유저 없음"));
-
+        AppUser user = authService.getUserByUserIdNotAdmin(userId);
         return userFollowRepository.findByFollower(user).stream()
                 .map(UserFollow::getFollowee)
                 .collect(Collectors.toList());
     }
 
+    // 팔로워 수 조회 (어드민 제외)
     public long getFollowerCount(long userId) {
-        AppUser user = appUserRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("유저 없음"));
-
+        AppUser user = authService.getUserByUserIdNotAdmin(userId);
         return userFollowRepository.countByFollowee(user);
     }
 
+    // 팔로잉 수 조회 (어드민 제외)
     public long getFolloweeCount(long userId) {
-        AppUser user = appUserRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("유저 없음"));
-
+        AppUser user = authService.getUserByUserIdNotAdmin(userId);
         return userFollowRepository.countByFollower(user);
     }
 }

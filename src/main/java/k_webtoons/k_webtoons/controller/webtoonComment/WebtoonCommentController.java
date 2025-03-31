@@ -12,6 +12,7 @@ import k_webtoons.k_webtoons.service.webtoonComment.WebtoonCommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -33,6 +34,7 @@ public class WebtoonCommentController {
             }
     )
     @PostMapping("/{webtoonId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CommentResponseDTO> add(@PathVariable Long webtoonId, @RequestBody CommentRequestDTO requestDto) {
         CommentResponseDTO comment = service.addComment(webtoonId, requestDto);
         return ResponseEntity.ok(comment);
@@ -86,6 +88,7 @@ public class WebtoonCommentController {
             }
     )
     @PutMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> update(@PathVariable Long id, @RequestBody String content) {
         try {
             service.updateComment(id, content);
@@ -112,6 +115,7 @@ public class WebtoonCommentController {
             }
     )
     @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> delete(@PathVariable Long id) {
         try {
             service.deleteComment(id);
@@ -138,6 +142,7 @@ public class WebtoonCommentController {
             }
     )
     @PostMapping("/{id}/like")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> like(@PathVariable Long id) {
         try {
             service.addLike(id);
@@ -164,6 +169,7 @@ public class WebtoonCommentController {
             }
     )
     @PostMapping("/{id}/unlike")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> unlike(@PathVariable Long id) {
         try {
             service.removeLike(id);

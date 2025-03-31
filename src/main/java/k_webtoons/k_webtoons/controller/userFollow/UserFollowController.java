@@ -7,6 +7,7 @@ import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.service.user.UserFollowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class UserFollowController {
 
     @Operation(summary = "팔로우", description = "followerId 사용자가 followeeId 사용자를 팔로우합니다.")
     @PostMapping("/{followerId}/follow/{followeeId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> follow(
             @Parameter(description = "팔로우하는 유저 ID", example = "1") @PathVariable int followerId,
             @Parameter(description = "팔로우 당하는 유저 ID", example = "2") @PathVariable int followeeId
@@ -31,6 +33,7 @@ public class UserFollowController {
 
     @Operation(summary = "언팔로우", description = "followerId 사용자가 followeeId 사용자를 언팔로우합니다.")
     @DeleteMapping("/{followerId}/unfollow/{followeeId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> unfollow(
             @Parameter(description = "언팔로우하는 유저 ID", example = "1") @PathVariable int followerId,
             @Parameter(description = "언팔로우 당하는 유저 ID", example = "2") @PathVariable int followeeId

@@ -106,4 +106,18 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
     }
 
+
+    // 특정 사용자 조회 (어드민 제외)
+    public AppUser getUserByUserIdNotAdmin(Long userId) {
+        AppUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        // 어드민 계정은 조회 불가능
+        if ("ADMIN".equals(user.getRole())) {
+            throw new RuntimeException("어드민 계정을 조회할 수 없습니다.");
+        }
+
+        return user;
+    }
+
 }
