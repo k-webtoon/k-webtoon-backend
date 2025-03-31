@@ -31,36 +31,10 @@ public class AppUserService {
     private final WebtoonCommentRepository webtoonCommentRepository;
     private final LikeWebtoonListRepository likeWebtoonListRepository;
 
-    // 사용자 정보 불러오기
-    public UserInfoDTO getUserInfo() {
-        try {
-            AppUser user = authService.getAuthenticatedUser();
-            long commentCount = user.getWebtoonComments().stream()
-                    .filter(comment -> comment.getDeletedDateTime() == null)
-                    .count();
-
-            long followerCount = userFollowService.getFollowerCount(user.getIndexId());
-            long followeeCount = userFollowService.getFolloweeCount(user.getIndexId());
-
-            return new UserInfoDTO(
-                    user.getIndexId(),
-                    user.getUserEmail(),
-                    user.getNickname(),
-                    user.getUserAge(),
-                    user.getGender(),
-                    commentCount,
-                    followerCount,
-                    followeeCount
-            );
-        } catch (Exception e) {
-            throw new CustomException("사용자 정보를 불러올 수 없습니다.", "USER_INFO_ERROR");
-        }
-    }
-
+    // 사용자 정보 조회 (어드민 제외)
     public UserInfoDTO getUserInfoByUserId(Long userId) {
         try {
-            AppUser user = userRepository.findById(userId)
-                    .orElseThrow(() -> new CustomException("사용자를 찾을 수 없습니다.", "USER_NOT_FOUND"));
+            AppUser user = authService.getUserByUserIdNotAdmin(userId);
 
             long commentCount = user.getWebtoonComments().stream()
                     .filter(comment -> comment.getDeletedDateTime() == null)
@@ -84,12 +58,14 @@ public class AppUserService {
         }
     }
 
+    // 댓글 조회 (어드민 제외)
     public List<UserCommentResponseDTO> getCommentsByUserId(Long userId) {
         try {
-            List<WebtoonComment> comments = webtoonCommentRepository.findByUserIdAndDeletedDateTimeIsNull(userId);
+            AppUser user = authService.getUserByUserIdNotAdmin(userId); // ✅ 어드민 제외
+            List<WebtoonComment> comments = webtoonCommentRepository.findByUserIdAndDeletedDateTimeIsNull(user.getIndexId());
 
             if (comments.isEmpty()) {
-                return List.of(); // 빈 리스트 반환
+                return List.of();
             }
 
             return comments.stream()
@@ -102,17 +78,17 @@ public class AppUserService {
                     ))
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            e.printStackTrace(); // 예외 출력
+            e.printStackTrace();
             throw new CustomException("댓글을 불러올 수 없습니다.", "COMMENT_ERROR");
         }
     }
 
+    // 좋아요한 웹툰 조회 (어드민 제외)
     public List<LikeWebtoonDTO> getLikedWebtoonsByUserId(Long userId) {
         try {
-            // JPQL을 사용해 좋아요한 웹툰 목록 조회
-            List<LikeWebtoonList> likedWebtoons = likeWebtoonListRepository.findLikedWebtoonsByUserId(userId);
+            AppUser user = authService.getUserByUserIdNotAdmin(userId); // ✅ 어드민 제외
+            List<LikeWebtoonList> likedWebtoons = likeWebtoonListRepository.findLikedWebtoonsByUserId(user.getIndexId());
 
-            // DTO로 변환하여 반환
             return likedWebtoons.stream()
                     .map(like -> new LikeWebtoonDTO(
                             like.getWebtoon().getId(),

@@ -26,7 +26,6 @@ public class AppUserController {
 
     private final AppUserService userService;
     private final UserFollowService userFollowService;
-    private final LikeWebtoonService likeWebtoonService;
 
     @Operation(
             summary = "사용자 정보 조회 API",
