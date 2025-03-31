@@ -88,6 +88,7 @@ public class WebtoonCsvImportService {
                         .osmuGame(parseInteger(nextLine[29]))
                         .osmuOX(parseInteger(nextLine[30]))
                         .synopVec(parseVector(nextLine[31]))
+                        .link(nextLine[32])
                         .build();
 
                 webtoonRepository.save(webtoon);
@@ -114,8 +115,8 @@ public class WebtoonCsvImportService {
     }
 
     private Boolean parseBoolean(String value) {
-        if (value == null) return false;
-        return value.equals("1.0");
+        if (!StringUtils.hasText(value)) return false;
+        return value.trim().equals("1");
     }
 
     private Long parseLong(String value) {

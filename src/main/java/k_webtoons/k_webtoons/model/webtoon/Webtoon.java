@@ -121,7 +121,6 @@ public class Webtoon {
     @Column(name = "osmu_OX")
     private Integer osmuOX;
 
-
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "synop_vec", columnDefinition = "float[]")
     private float[] synopVec;
@@ -131,6 +130,9 @@ public class Webtoon {
 
     @OneToMany(mappedBy = "webtoon")
     private Set<WebtoonComment> webtoonComments;
+
+    @Column(name = "link", columnDefinition = "TEXT")
+    private String link;
 
     // 테스트 코드용 생성자 함수
     public Webtoon(long l, long l1, String webtoonTitle, String authorName, boolean b, String allAges, boolean b1, String thumbnailUrl, String synopsis, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9, Object o10, Object o11, Object o12, Object o13, Object o14, Object o15, Object o16, Object o17, Object o18, Object o19, Object o20) {
