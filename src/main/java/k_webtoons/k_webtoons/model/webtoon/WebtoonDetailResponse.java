@@ -9,7 +9,7 @@ public record WebtoonDetailResponse(
         String url,
         String synopsis,
         String age,
-        String starScore,  // ⭐ 소수점 둘째자리 포맷
+        String starScore,
         boolean osmuAnime,
         boolean osmuDrama,
         boolean osmuGame,
@@ -21,5 +21,4 @@ public record WebtoonDetailResponse(
         List<String> genre,
         List<String> tag,
         String artistId
-) {
-    }
+) {}

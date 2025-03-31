@@ -46,7 +46,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // 로그인
+    // 로그인 주석추가
     @Operation(
             summary = "로그인 API",
             description = "사용자가 이메일과 비밀번호를 제공하여 로그인하고 JWT 토큰을 반환받습니다.",
