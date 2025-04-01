@@ -32,4 +32,7 @@ public class CommentLike {
         @Column(nullable = false)
         private LocalDateTime likedAt; // 좋아요 누른 시간
 
+        @Column(nullable = false)
+        private boolean isLiked;
+
 }

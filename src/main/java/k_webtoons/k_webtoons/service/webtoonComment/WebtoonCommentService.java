@@ -16,9 +16,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,113 +33,191 @@ public class WebtoonCommentService {
     private final WebtoonRepository webtoonRepository;
     private final HeaderValidator headerValidator;
 
-    // 댓글 작성
-    public CommentResponseDTO addComment(Long webtoonId, CommentRequestDTO requestDto) {
-        AppUser appUser = headerValidator.getAuthenticatedUser(); // JWT 헤더 검증 및 사용자 정보 가져오기
-        Webtoon webtoon = webtoonRepository.findById(webtoonId)
-                .orElseThrow(() -> new RuntimeException("웹툰을 찾을 수 없습니다."));
-        WebtoonComment comment = WebtoonComment.builder()
-                .appUser(appUser)
-                .webtoon(webtoon)
-                .content(requestDto.content())
-                .build();
-        WebtoonComment savedComment = commentRepository.save(comment);
-        return new CommentResponseDTO(
-                savedComment.getId(),
-                savedComment.getContent(),
-                appUser.getNickname(),
-                savedComment.getCreatedDate(),
-                0L // 초기 좋아요 수는 0입니다.
-        );
+    // ========= 공통 검증 메서드 분리 =========
+    private void validateCommentOwnership(WebtoonComment comment, AppUser currentUser) {
+        if (!comment.getAppUser().equals(currentUser)) {
+            throw new CustomException("권한이 없습니다.", "UNAUTHORIZED_ACCESS");
+        }
     }
 
-    // 댓글 조회
+    // ========= 댓글 작성 =========
+    public CommentResponseDTO addComment(Long webtoonId, CommentRequestDTO requestDto) {
+        try {
+            AppUser appUser = headerValidator.getAuthenticatedUser();
+            Webtoon webtoon = webtoonRepository.findById(webtoonId)
+                    .orElseThrow(() -> new CustomException("웹툰을 찾을 수 없습니다.", "WEBTOON_NOT_FOUND"));
+
+            WebtoonComment comment = WebtoonComment.builder()
+                    .appUser(appUser)
+                    .webtoon(webtoon)
+                    .content(requestDto.content())
+                    .build();
+
+            WebtoonComment savedComment = commentRepository.save(comment);
+            return new CommentResponseDTO(
+                    savedComment.getId(),
+                    savedComment.getContent(),
+                    appUser.getNickname(),
+                    savedComment.getCreatedDate(),
+                    0L,
+                    false
+            );
+        } catch (Exception e) {
+            throw new CustomException("댓글 작성 실패: " + e.getMessage(), "COMMENT_CREATE_FAILED");
+        }
+    }
+
+    // ========= 댓글 조회 =========
     public Page<CommentResponseDTO> getCommentsByWebtoonId(Long webtoonId, int page, int size) {
-        Webtoon webtoon = webtoonRepository.findById(webtoonId)
-                .orElseThrow(() -> new RuntimeException("웹툰을 찾을 수 없습니다."));
+        try {
+            Webtoon webtoon = webtoonRepository.findById(webtoonId)
+                    .orElseThrow(() -> new CustomException("웹툰을 찾을 수 없습니다.", "WEBTOON_NOT_FOUND"));
 
-        Pageable pageable = PageRequest.of(page, size);
+            // id 역순 정렬
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
 
-        Page<WebtoonComment> comments = commentRepository.findByWebtoonAndDeletedDateTimeIsNull(webtoon, pageable);
+            AppUser currentUser = getCurrentUserOrNull();
 
-        return comments.map(comment -> {
-            long likeCount = likeRepository.countByWebtoonComment(comment);
+            Page<WebtoonComment> comments = commentRepository.findByWebtoonAndDeletedDateTimeIsNull(webtoon, pageable);
+            return comments.map(comment -> mapCommentToDTO(comment, currentUser));
+        } catch (Exception e) {
+            throw new CustomException("댓글 조회 실패: " + e.getMessage(), "COMMENT_FETCH_FAILED");
+        }
+    }
+
+    // ========= 베스트 댓글 조회 =========
+    public List<CommentResponseDTO> getBestComments(Long webtoonId) {
+        try {
+            List<WebtoonComment> bestComments = commentRepository.findTop3BestComments(webtoonId);
+
+            // 현재 사용자 정보 가져오기 (로그인하지 않은 경우 null 반환)
+            AppUser currentUser = getCurrentUserOrNull();
+
+            return bestComments.stream()
+                    .map(comment -> mapCommentToDTO(comment, currentUser))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new CustomException("베스트 댓글 조회 실패: " + e.getMessage(), "BEST_COMMENT_FETCH_FAILED");
+        }
+    }
+
+    // ========= 댓글 수정 =========
+    @Transactional
+    public void updateComment(Long id, String newContent) {
+        try {
+            WebtoonComment comment = commentRepository.findByIdAndDeletedDateTimeIsNull(id)
+                    .orElseThrow(() -> new CustomException("댓글을 찾을 수 없습니다.", "COMMENT_NOT_FOUND"));
+
+            AppUser currentUser = headerValidator.getAuthenticatedUser();
+            validateCommentOwnership(comment, currentUser);
+
+            comment.setContent(newContent);
+            commentRepository.save(comment);
+        } catch (Exception e) {
+            throw new CustomException("댓글 수정 실패: " + e.getMessage(), "COMMENT_UPDATE_FAILED");
+        }
+    }
+
+    // ========= 댓글 삭제 =========
+    @Transactional
+    public void deleteComment(Long id) {
+        try {
+            WebtoonComment comment = commentRepository.findByIdAndDeletedDateTimeIsNull(id)
+                    .orElseThrow(() -> new CustomException("댓글을 찾을 수 없습니다.", "COMMENT_NOT_FOUND"));
+
+            AppUser currentUser = headerValidator.getAuthenticatedUser();
+            validateCommentOwnership(comment, currentUser);
+
+            comment.deleteComment();
+            commentRepository.save(comment);
+        } catch (Exception e) {
+            throw new CustomException("댓글 삭제 실패: " + e.getMessage(), "COMMENT_DELETE_FAILED");
+        }
+    }
+
+    // ========= 좋아요 추가 =========
+    @Transactional
+    public void addLike(Long commentId) {
+        try {
+            AppUser appUser = headerValidator.getAuthenticatedUser();
+            WebtoonComment comment = commentRepository.findByIdAndDeletedDateTimeIsNull(commentId)
+                    .orElseThrow(() -> new CustomException("댓글을 찾을 수 없습니다.", "COMMENT_NOT_FOUND"));
+
+            Optional<CommentLike> existingLike = likeRepository.findByAppUserAndWebtoonComment(appUser, comment);
+
+            if (existingLike.isPresent()) {
+                CommentLike like = existingLike.get();
+                if (like.isLiked()) {
+                    throw new CustomException("이미 좋아요를 눌렀습니다.", "ALREADY_LIKED");
+                }
+                like.setLiked(true);
+                likeRepository.save(like);
+            } else {
+                CommentLike like = CommentLike.builder()
+                        .appUser(appUser)
+                        .webtoonComment(comment)
+                        .likedAt(LocalDateTime.now())
+                        .isLiked(true)
+                        .build();
+                likeRepository.save(like);
+            }
+        } catch (Exception e) {
+            throw new CustomException("좋아요 추가 실패: " + e.getMessage(), "LIKE_ADD_FAILED");
+        }
+    }
+
+    // ========= 좋아요 취소 =========
+    @Transactional
+    public void removeLike(Long commentId) {
+        try {
+            AppUser appUser = headerValidator.getAuthenticatedUser();
+            WebtoonComment comment = commentRepository.findByIdAndDeletedDateTimeIsNull(commentId)
+                    .orElseThrow(() -> new CustomException("댓글을 찾을 수 없습니다.", "COMMENT_NOT_FOUND"));
+
+            CommentLike like = likeRepository.findByAppUserAndWebtoonComment(appUser, comment)
+                    .orElseThrow(() -> new CustomException("좋아요 기록이 없습니다.", "LIKE_NOT_FOUND"));
+
+            like.setLiked(false);
+            likeRepository.save(like);
+        } catch (Exception e) {
+            throw new CustomException("좋아요 취소 실패: " + e.getMessage(), "LIKE_REMOVE_FAILED");
+        }
+    }
+
+    // ========= DTO 매핑 메서드 =========
+    private CommentResponseDTO mapCommentToDTO(WebtoonComment comment, AppUser currentUser) {
+        try {
+            // currentUser가 null이면 isLiked는 항상 false
+            boolean isLiked = currentUser != null &&
+                    likeRepository.findByAppUserAndWebtoonComment(currentUser, comment)
+                            .filter(CommentLike::isLiked)
+                            .isPresent();
+
+            long likeCount = likeRepository.countByWebtoonCommentAndIsLikedTrue(comment);
+
             return new CommentResponseDTO(
                     comment.getId(),
                     comment.getContent(),
                     comment.getAppUser().getNickname(),
                     comment.getCreatedDate(),
-                    likeCount
+                    likeCount,
+                    isLiked
             );
-        });
-    }
-
-    // 댓글 수정
-    @Transactional
-    public void updateComment(Long id, String newContent) {
-        WebtoonComment comment = commentRepository.findByIdAndDeletedDateTimeIsNull(id)
-                .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
-        AppUser appUser = headerValidator.getAuthenticatedUser(); // JWT 헤더 검증
-
-        if (!comment.getAppUser().equals(appUser)) {
-            throw new RuntimeException("수정 권한이 없습니다.");
+        } catch (Exception e) {
+            throw new CustomException("댓글 매핑 실패: " + e.getMessage(), "COMMENT_MAPPING_FAILED");
         }
-
-        comment.setContent(newContent);
-        commentRepository.save(comment);
     }
 
-    // 댓글 삭제 (소프트 딜리트)
-    @Transactional
-    public void deleteComment(Long id) {
-        WebtoonComment comment = commentRepository.findByIdAndDeletedDateTimeIsNull(id)
-                .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
-        AppUser appUser = headerValidator.getAuthenticatedUser(); // JWT 헤더 검증
-
-        if (!comment.getAppUser().equals(appUser)) {
-            throw new RuntimeException("삭제 권한이 없습니다.");
+    // 사용자 정보 확인
+    private AppUser getCurrentUserOrNull() {
+        try {
+            return headerValidator.getAuthenticatedUser();
+        } catch (Exception e) {
+            return null; // 인증되지 않은 경우 null 반환
         }
-
-        comment.deleteComment();
-        commentRepository.save(comment);
     }
 
-    // 좋아요 추가 (중복 방지)
-    @Transactional
-    public void addLike(Long commentId) {
-        AppUser appUser = headerValidator.getAuthenticatedUser(); // JWT 헤더 검증
-        WebtoonComment comment = commentRepository.findByIdAndDeletedDateTimeIsNull(commentId)
-                .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
-
-        if (likeRepository.findByAppUserAndWebtoonComment(appUser, comment).isPresent()) {
-            throw new RuntimeException("이미 이 댓글에 좋아요를 눌렀습니다.");
-        }
-
-        CommentLike like = CommentLike.builder()
-                .appUser(appUser)
-                .webtoonComment(comment)
-                .likedAt(LocalDateTime.now())
-                .build();
-        likeRepository.save(like);
-
-        comment.getLikes().add(like);
-        commentRepository.save(comment);
-    }
-
-    // 좋아요 취소
-    @Transactional
-    public void removeLike(Long commentId) {
-        AppUser appUser = headerValidator.getAuthenticatedUser(); // JWT 헤더 검증
-        WebtoonComment comment = commentRepository.findByIdAndDeletedDateTimeIsNull(commentId)
-                .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
-
-        CommentLike like = likeRepository.findByAppUserAndWebtoonComment(appUser, comment)
-                .orElseThrow(() -> new RuntimeException("좋아요 기록이 없습니다."));
-
-        likeRepository.delete(like);
-    }
-
-
+    // ========= 테스트용 메서드 =========
     public CommentResponseDTO getCommentById(Long commentId) {
         try {
             WebtoonComment comment = commentRepository.findById(commentId)
@@ -146,10 +228,11 @@ public class WebtoonCommentService {
                     comment.getContent(),
                     comment.getAppUser().getNickname(),
                     comment.getCreatedDate(),
-                    (long) comment.getLikes().size()
+                    (long) comment.getLikes().size(),
+                    false
             );
         } catch (Exception e) {
-            throw new CustomException("댓글을 불러올 수 없습니다.", "COMMENT_ERROR");
+            throw new CustomException("댓글 조회 실패: " + e.getMessage(), "COMMENT_FETCH_FAILED");
         }
     }
 }

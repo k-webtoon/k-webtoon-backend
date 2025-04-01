@@ -4,6 +4,7 @@ import k_webtoons.k_webtoons.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -45,8 +46,10 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**"
                         ).permitAll()
-                        .requestMatchers("/api/comments/*").permitAll()
-                        .requestMatchers("/api/comments/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll() // GET은 모두 허용
+                        .requestMatchers(HttpMethod.POST, "/api/comments/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/comments/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/comments/**").authenticated()
                         .requestMatchers("/api/user/**").permitAll()
                         .requestMatchers("/api/webtoon/like/**").permitAll()
                         .requestMatchers("/api/connector/**").permitAll()
