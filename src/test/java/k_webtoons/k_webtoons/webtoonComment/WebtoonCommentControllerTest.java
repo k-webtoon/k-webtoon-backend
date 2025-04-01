@@ -41,7 +41,7 @@ public class WebtoonCommentControllerTest {
     public void testAddComment() throws Exception {
         Long webtoonId = 1L;
         CommentRequestDTO requestDto = new CommentRequestDTO("Test comment");
-        CommentResponseDTO responseDto = new CommentResponseDTO(1L, "Test comment", "user", LocalDateTime.now(), 0L);
+        CommentResponseDTO responseDto = new CommentResponseDTO(1L, "Test comment", "user", LocalDateTime.now(), 0L, false);
 
         // service.addComment()가 호출될 때, Mock된 responseDto를 리턴하도록 설정
         given(service.addComment(eq(webtoonId), any(CommentRequestDTO.class))).willReturn(responseDto);
@@ -60,7 +60,7 @@ public class WebtoonCommentControllerTest {
     @WithMockUser  // 보통 Spring Security를 사용하는 경우, 인증된 사용자로 테스트를 실행
     public void testGetComment() throws Exception {
         Long commentId = 1L;
-        CommentResponseDTO responseDto = new CommentResponseDTO(commentId, "Test comment", "user", LocalDateTime.now(), 0L);
+        CommentResponseDTO responseDto = new CommentResponseDTO(commentId, "Test comment", "user", LocalDateTime.now(), 0L, false);
 
         // service.getCommentById()가 호출될 때, Mock된 responseDto를 리턴하도록 설정
         given(service.getCommentById(commentId)).willReturn(responseDto);

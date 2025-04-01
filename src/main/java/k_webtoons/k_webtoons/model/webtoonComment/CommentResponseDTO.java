@@ -7,6 +7,7 @@ public record CommentResponseDTO(
     String content,
     String userNickname,
     LocalDateTime createdDate,
-    Long likeCount
+    Long likeCount,
+    boolean isLiked
 ) {
 }

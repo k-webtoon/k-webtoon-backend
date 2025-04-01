@@ -19,4 +19,15 @@ public interface WebtoonCommentRepository extends JpaRepository<WebtoonComment ,
 
     @Query("SELECT wc FROM WebtoonComment wc WHERE wc.appUser.indexId = :userId AND wc.deletedDateTime IS NULL")
     List<WebtoonComment> findByUserIdAndDeletedDateTimeIsNull(@Param("userId") Long userId);
+
+    @Query(value = """
+        SELECT c.* FROM webtoon_comment c
+        LEFT JOIN comment_like l ON c.id = l.comment_id AND l.is_liked = true
+        WHERE c.webtoon_id = :webtoonId
+          AND c.deleted_date_time IS NULL
+        GROUP BY c.id
+        ORDER BY COUNT(l.id) DESC
+        LIMIT 3
+        """, nativeQuery = true)
+    List<WebtoonComment> findTop3BestComments(@Param("webtoonId") Long webtoonId);
 }
