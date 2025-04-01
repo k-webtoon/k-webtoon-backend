@@ -4,11 +4,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.user.FollowAppUserDTO;
 import k_webtoons.k_webtoons.model.user.LikeWebtoonDTO;
 import k_webtoons.k_webtoons.model.user.UserCommentResponseDTO;
 import k_webtoons.k_webtoons.model.user.UserInfoDTO;
+import k_webtoons.k_webtoons.security.HeaderValidator;
 import k_webtoons.k_webtoons.service.user.AppUserService;
 import k_webtoons.k_webtoons.service.user.UserFollowService;
 import k_webtoons.k_webtoons.service.webtoon.LikeWebtoonService;
@@ -26,6 +28,7 @@ public class AppUserController {
 
     private final AppUserService userService;
     private final UserFollowService userFollowService;
+    private final HeaderValidator headerValidator;
 
     @Operation(
             summary = "사용자 정보 조회 API",
@@ -120,4 +123,23 @@ public class AppUserController {
                 ))
                 .collect(Collectors.toList()));
     }
+
+    @Operation(
+            summary = "현재 로그인한 사용자 정보 조회 API",
+            description = "JWT 토큰을 기반으로 현재 로그인된 사용자의 정보를 반환합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "사용자 정보 성공적으로 반환",
+                            content = @Content(schema = @Schema(implementation = UserInfoDTO.class))
+                    )
+            }
+    )
+    @GetMapping("/me")
+    public ResponseEntity<UserInfoDTO> getCurrentUserInfo() {
+        AppUser currentUser = headerValidator.getAuthenticatedUser();
+        return ResponseEntity.ok(userService.getUserInfoByUserId(currentUser.getIndexId()));
+    }
+
 }
