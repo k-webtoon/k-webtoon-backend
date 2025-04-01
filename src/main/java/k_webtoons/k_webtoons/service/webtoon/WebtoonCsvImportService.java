@@ -89,6 +89,7 @@ public class WebtoonCsvImportService {
                         .osmuOX(parseInteger(nextLine[30]))
                         .synopVec(parseVector(nextLine[31]))
                         .link(nextLine[32])
+                        .character(parseCsvList(nextLine.length > 33 ? nextLine[33] : ""))
                         .build();
 
                 webtoonRepository.save(webtoon);
