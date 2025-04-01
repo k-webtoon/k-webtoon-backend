@@ -1,22 +1,15 @@
 package k_webtoons.k_webtoons.service.webtoon;
 
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
-import com.opencsv.RFC4180Parser;
-import com.opencsv.exceptions.CsvException;
+import k_webtoons.k_webtoons.exception.WebtoonNotFoundException;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
+import k_webtoons.k_webtoons.model.webtoon.WebtoonDetailResponse;
+import k_webtoons.k_webtoons.model.webtoon.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class WebtoonService {
@@ -24,98 +17,134 @@ public class WebtoonService {
     @Autowired
     private WebtoonRepository webtoonRepository;
 
-    // CSV 리스트 파싱 메서드
-    private List<String> parseCsvList(String value) {
-        if (!StringUtils.hasText(value)) return Collections.emptyList();
+    // 조회수 높은 웹툰 리스트 조회
+    public Page<WebtoonViewCountResponse> getTopWebtoons(int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<Webtoon> webtoons = webtoonRepository.findAllByOrderByFavoriteCountDesc(pageable);
 
-        return Arrays.stream(value
-                        .replaceAll("[\\[\\]']", "")  // 대괄호 및 작은따옴표 제거
-                        .split(",\\s*"))              // 쉼표+공백 기준 분리
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toList());
+        return webtoons.map(webtoon ->
+                new WebtoonViewCountResponse(
+                        webtoon.getId(),
+                        webtoon.getTitleId(),
+                        webtoon.getTitleName(),
+                        webtoon.getAuthor(),
+                        webtoon.getAdult(),
+                        webtoon.getAge(),
+                        webtoon.getFinish(),
+                        webtoon.getThumbnailUrl(),
+                        webtoon.getSynopsis(),
+                        webtoon.getRankGenreTypes(),
+                        webtoon.getStarScore()
+                ));
     }
 
-    public void saveWebtoonsFromCSV(String csvFilePath) throws IOException, CsvException {
-        RFC4180Parser parser = new RFC4180Parser();
-        try (Reader reader = new FileReader(csvFilePath)) {
-            CSVReader csvReader = new CSVReaderBuilder(reader)
-                    .withCSVParser(parser)
-                    .build();
+    // 이름으로 웹툰 검색
+    public Page<WebtoonViewCountResponse> searchWebtoonsByName(String titleName, int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<Webtoon> webtoons = webtoonRepository.findByTitleNameContainingIgnoreCase(titleName, pageable);
 
-            String[] headers = csvReader.readNext(); // 헤더 추출
-
-            String[] nextLine;
-            while ((nextLine = csvReader.readNext()) != null) {
-                Webtoon webtoon = Webtoon.builder()
-                        .titleId(parseLong(nextLine[0]))
-                        .titleName(nextLine[1])
-                        .original(parseBoolean(nextLine[2]))
-                        .author(nextLine[3])
-                        .artistId(nextLine[4])
-                        .adult(parseBoolean(nextLine[5]))
-                        .age(nextLine[6])
-                        .finish(parseBoolean(nextLine[7]))
-                        .thumbnailUrl(nextLine[8])
-                        .synopsis(nextLine[9])
-                        .genre(parseCsvList(nextLine[10]))
-                        .rankGenreTypes(parseCsvList(nextLine[11]))
-                        .tags(parseCsvList(nextLine[12]))
-                        .totalCount(parseLong(nextLine[13]))
-                        .viewCount(parseLong(nextLine[14]))
-                        .starScore(parseDouble(nextLine[15]))
-                        .favoriteCount(parseLong(nextLine[16]))
-                        .starStdDeviation(parseDouble(nextLine[17]))
-                        .likeMeanValue(parseDouble(nextLine[18]))
-                        .likeStdDeviation(parseDouble(nextLine[19]))
-                        .commentsMeanValue(parseDouble(nextLine[20]))
-                        .commentsStdDeviation(parseDouble(nextLine[21]))
-                        .collectedNumOfEpi(parseInteger(nextLine[22]))
-                        .numOfWorks(parseInteger(nextLine[23]))
-                        .numsOfWork2(parseInteger(nextLine[24]))
-                        .writersFavorAverage(parseDouble(nextLine[25]))
-                        .osmuMovie(parseInteger(nextLine[26]))
-                        .osmuDrama(parseInteger(nextLine[27]))
-                        .osmuAnime(parseInteger(nextLine[28]))
-                        .osmuPlay(parseInteger(nextLine[29]))
-                        .osmuGame(parseInteger(nextLine[30]))
-                        .osmuOX(parseInteger(nextLine[31]))
-                        .build();
-
-                webtoonRepository.save(webtoon);
-            }
-        }
+        return webtoons.map(webtoon ->
+                new WebtoonViewCountResponse(
+                        webtoon.getId(),
+                        webtoon.getTitleId(),
+                        webtoon.getTitleName(),
+                        webtoon.getAuthor(),
+                        webtoon.getAdult(),
+                        webtoon.getAge(),
+                        webtoon.getFinish(),
+                        webtoon.getThumbnailUrl(),
+                        webtoon.getSynopsis(),
+                        webtoon.getRankGenreTypes(),
+                        webtoon.getStarScore()
+                ));
     }
 
-    // Helper methods
-    private Boolean parseBoolean(String value) {
-        return "TRUE".equalsIgnoreCase(value) || "1".equals(value);
+    // 작가로 웹툰 검색
+    public Page<WebtoonViewCountResponse> searchWebtoonsByAuthor(String author, int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<Webtoon> webtoons = webtoonRepository.findByAuthorContaining(author, pageable);
+
+        return webtoons.map(webtoon ->
+                new WebtoonViewCountResponse(
+                        webtoon.getId(),
+                        webtoon.getTitleId(),
+                        webtoon.getTitleName(),
+                        webtoon.getAuthor(),
+                        webtoon.getAdult(),
+                        webtoon.getAge(),
+                        webtoon.getFinish(),
+                        webtoon.getThumbnailUrl(),
+                        webtoon.getSynopsis(),
+                        webtoon.getRankGenreTypes(),
+                        webtoon.getStarScore()
+                ));
     }
 
-    private Long parseLong(String value) {
-        if (!StringUtils.hasText(value)) return 0L;
-        try {
-            return Long.parseLong(value.trim());
-        } catch (NumberFormatException e) {
-            return 0L;
-        }
+    // 테그로 웹툰 검색
+    public Page<WebtoonViewCountResponse> searchWebtoonsByTags(String tags, int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<Webtoon> webtoons = webtoonRepository.findByTag(tags, pageable);
+
+        return webtoons.map(webtoon ->
+                new WebtoonViewCountResponse(
+                        webtoon.getId(),
+                        webtoon.getTitleId(),
+                        webtoon.getTitleName(),
+                        webtoon.getAuthor(),
+                        webtoon.getAdult(),
+                        webtoon.getAge(),
+                        webtoon.getFinish(),
+                        webtoon.getThumbnailUrl(),
+                        webtoon.getSynopsis(),
+                        webtoon.getRankGenreTypes(),
+                        webtoon.getStarScore()
+                ));
     }
 
-    private Integer parseInteger(String value) {
-        if (!StringUtils.hasText(value)) return 0;
-        try {
-            return Integer.parseInt(value.trim());
-        } catch (NumberFormatException e) {
-            return 0;
-        }
+    public WebtoonDetailResponse getWebtoonDetail(Long id) {
+        Webtoon webtoon = webtoonRepository.findById(id)
+                .orElseThrow(() -> new WebtoonNotFoundException("해당 ID의 웹툰이 존재하지 않습니다."));
+
+        return new WebtoonDetailResponse(
+                webtoon.getId(),
+                webtoon.getTitleName(),
+                webtoon.getAuthor(),
+                webtoon.getThumbnailUrl(),
+                webtoon.getSynopsis(),
+                webtoon.getAge(),
+                String.format("%.2f", webtoon.getStarScore() != null ? webtoon.getStarScore() : 0.0),
+                toBool(webtoon.getOsmuAnime()),  // Integer -> boolean 변환
+                toBool(webtoon.getOsmuDrama()),
+                toBool(webtoon.getOsmuGame()),
+                toBool(webtoon.getOsmuMovie()),
+                toBool(webtoon.getOsmuOX()),
+                toBool(webtoon.getOsmuPlay()),
+                webtoon.getFinish(),
+                webtoon.getAdult(),
+                webtoon.getGenre(),
+                webtoon.getTags(),
+                webtoon.getArtistId()
+        );
     }
 
-    private Double parseDouble(String value) {
-        if (!StringUtils.hasText(value)) return 0.0;
-        try {
-            return Double.parseDouble(value.trim());
-        } catch (NumberFormatException e) {
-            return 0.0;
-        }
+    // 여기서부턴 로직용 함수
+
+    public String getWebtoonTitleById(Long webtoonId) {
+        Webtoon webtoon = webtoonRepository.findById(webtoonId)
+                .orElseThrow(() -> new WebtoonNotFoundException("해당 ID의 웹툰이 존재하지 않습니다."));
+        return webtoon.getTitleName();
     }
+
+    public Webtoon getWebtoonById(Long webtoonId) {
+        return webtoonRepository.findById(webtoonId)
+                .orElseThrow(() -> new RuntimeException("웹툰을 찾을 수 없습니다."));
+    }
+
+    private boolean toBool(Integer value) {
+        return value != null && value == 1;
+    }
+
+
 }
+
+

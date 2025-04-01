@@ -1,7 +1,8 @@
-package k_webtoons.k_webtoons.model.user;
+package k_webtoons.k_webtoons.model.auth;
 
 import jakarta.persistence.*;
-import k_webtoons.k_webtoons.model.favorites.Favorites;
+import k_webtoons.k_webtoons.model.webtoon.LikeWebtoonList;
+import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,7 +12,11 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
+
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Getter
 @Setter
@@ -26,6 +31,7 @@ public class AppUser {
     @Column(nullable = false, unique = true)
     private String userEmail;
 
+    @JsonIgnore  // ✅ 민감 정보 숨기기
     @Column(nullable = false)
     private String userPassword;
 
@@ -43,16 +49,29 @@ public class AppUser {
     private String role;
 
     @OneToMany(mappedBy = "appUser")
-    private Set<Favorites> favorites;
+    private Set<LikeWebtoonList> likeWebtoonLists ;
 
-    public AppUser(String userEmail, String encodedPassword, Integer userAge, String gender, String nickname, String role) {
+    @OneToMany(mappedBy = "appUser")
+    private List<WebtoonComment> webtoonComments;  // 사용자가 작성한 웹툰 댓글 목록
+
+    @Column(unique = true)
+    private String phoneNumber;
+
+    private String securityQuestion;
+
+    @JsonIgnore
+    private String securityAnswer;
+
+    public AppUser(String userEmail, String userPassword, Integer userAge, String gender, String nickname, String role, String phoneNumber, String securityQuestion, String securityAnswer) {
         this.userEmail = userEmail;
-        this.userPassword = encodedPassword;
+        this.userPassword = userPassword;
         this.userAge = userAge;
         this.gender = gender;
         this.nickname = nickname;
         this.role = role;
-        this.createDateTime = LocalDateTime.now();
+        this.phoneNumber = phoneNumber;
+        this.securityQuestion = securityQuestion;
+        this.securityAnswer = securityAnswer;
     }
 
     // Spring Security 권한 처리

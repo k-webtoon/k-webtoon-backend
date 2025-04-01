@@ -1,8 +1,11 @@
 package k_webtoons.k_webtoons.model.webtoon;
 
 import jakarta.persistence.*;
-import k_webtoons.k_webtoons.model.favorites.Favorites;
+import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 
 import java.util.List;
 import java.util.Set;
@@ -65,16 +68,13 @@ public class Webtoon {
     private List<String> tags;
 
     @Column(name = "total_count")
-    private Long totalCount;
-
-    @Column(name = "view_count")
-    private Long viewCount;
+    private Double totalCount;
 
     @Column(name = "star_score")
     private Double starScore;
 
     @Column(name = "favorite_count")
-    private Long favoriteCount;
+    private Double favoriteCount;
 
     @Column(name = "star_std_deviation")
     private Double starStdDeviation;
@@ -92,13 +92,13 @@ public class Webtoon {
     private Double commentsStdDeviation;
 
     @Column(name = "collected_num_of_epi")
-    private Integer collectedNumOfEpi;
+    private Double collectedNumOfEpi;
 
     @Column(name = "num_of_works")
-    private Integer numOfWorks;
+    private Double numOfWorks;
 
     @Column(name = "nums_of_work_2")
-    private Integer numsOfWork2;
+    private Double numsOfWork2;
 
     @Column(name = "writers_favor_average")
     private Double writersFavorAverage;
@@ -121,6 +121,20 @@ public class Webtoon {
     @Column(name = "osmu_OX")
     private Integer osmuOX;
 
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "synop_vec", columnDefinition = "float[]")
+    private float[] synopVec;
+
     @OneToMany(mappedBy = "webtoon")
-    private Set<Favorites> favorites;
+    private Set<LikeWebtoonList> likeWebtoonLists;
+
+    @OneToMany(mappedBy = "webtoon")
+    private Set<WebtoonComment> webtoonComments;
+
+    @Column(name = "link", columnDefinition = "TEXT")
+    private String link;
+
+    // 테스트 코드용 생성자 함수
+    public Webtoon(long l, long l1, String webtoonTitle, String authorName, boolean b, String allAges, boolean b1, String thumbnailUrl, String synopsis, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9, Object o10, Object o11, Object o12, Object o13, Object o14, Object o15, Object o16, Object o17, Object o18, Object o19, Object o20) {
+    }
 }
