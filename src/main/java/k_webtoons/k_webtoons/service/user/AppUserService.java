@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AppUserService {
 
     private final UserRepository userRepository;
@@ -35,6 +36,7 @@ public class AppUserService {
     public UserInfoDTO getUserInfoByUserId(Long userId) {
         try {
             AppUser user = authService.getUserByUserIdNotAdmin(userId);
+            System.out.println("사용자 : " + user);
 
             long commentCount = user.getWebtoonComments().stream()
                     .filter(comment -> comment.getDeletedDateTime() == null)
@@ -54,7 +56,7 @@ public class AppUserService {
                     followeeCount
             );
         } catch (Exception e) {
-            throw new CustomException("사용자 정보를 불러올 수 없습니다.", "USER_INFO_ERROR");
+            throw new CustomException("사용자 정보를 불러올 수 없습니다." + e.getMessage(), "USER_INFO_ERROR");
         }
     }
 

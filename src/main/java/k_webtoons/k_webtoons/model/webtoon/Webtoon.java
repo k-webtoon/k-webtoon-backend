@@ -57,7 +57,7 @@ public class Webtoon {
     @Column(name = "genre", columnDefinition = "TEXT")
     private List<String> genre;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "webtoon_rank_genre_types", joinColumns = @JoinColumn(name = "webtoon_id"))
     @Column(name = "rank_genre_types", columnDefinition = "TEXT")
     private List<String> rankGenreTypes;
