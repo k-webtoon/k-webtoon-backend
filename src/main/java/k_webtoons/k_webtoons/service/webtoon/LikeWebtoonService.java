@@ -73,4 +73,13 @@ public class LikeWebtoonService {
             throw new CustomException("좋아요 한 웹툰을 불러올 수 없습니다.", "WEBTOON_ERROR");
         }
     }
+
+    public List<Long> getLikedWebtoonIds(Long userId) {
+        // 사용자의 좋아요 목록 가져오기
+        AppUser user = authService.getUserByUserId(userId);
+        return likeWebtoonListRepository.findByAppUser(user)
+                .stream()
+                .map(like -> like.getWebtoon().getId())
+                .collect(Collectors.toList());
+    }
 }
