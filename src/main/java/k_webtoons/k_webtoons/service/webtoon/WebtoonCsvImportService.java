@@ -117,7 +117,7 @@ public class WebtoonCsvImportService {
 
     private Boolean parseBoolean(String value) {
         if (!StringUtils.hasText(value)) return false;
-        return value.trim().equals("1");
+        return value.trim().equals("1") || value.trim().equals("1.0") || value.trim().equalsIgnoreCase("true");
     }
 
     private Long parseLong(String value) {
