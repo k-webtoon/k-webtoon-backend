@@ -10,6 +10,7 @@ import k_webtoons.k_webtoons.repository.webtoon.LikeWebtoonListRepository;
 import k_webtoons.k_webtoons.service.auth.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ public class LikeWebtoonService {
     private final AuthService authService;
     private final WebtoonService webtoonService;
 
+    @Transactional
     public void likeWebtoon(Long webtoonId) {
         try {
             AppUser user = authService.getAuthenticatedUser();
@@ -38,6 +40,7 @@ public class LikeWebtoonService {
         }
     }
 
+    @Transactional
     public void unlikeWebtoon(Long webtoonId) {
         try {
             AppUser user = authService.getAuthenticatedUser();
@@ -52,6 +55,7 @@ public class LikeWebtoonService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<LikeWebtoonDTO> getLikedWebtoonsByUserId(Long userId) {
         try {
             AppUser user = authService.getAuthenticatedUser();
@@ -74,6 +78,7 @@ public class LikeWebtoonService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Long> getLikedWebtoonIds(Long userId) {
         // 사용자의 좋아요 목록 가져오기
         AppUser user = authService.getUserByUserId(userId);

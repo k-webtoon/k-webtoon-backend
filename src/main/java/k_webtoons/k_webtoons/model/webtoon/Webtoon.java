@@ -54,7 +54,7 @@ public class Webtoon {
 
     @ElementCollection
     @CollectionTable(name = "webtoon_genre", joinColumns = @JoinColumn(name = "webtoon_id"))
-    @Column(name = "genre", columnDefinition = "TEXT")
+    @Column(name = "genre")
     private List<String> genre;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -125,10 +125,10 @@ public class Webtoon {
     @Column(name = "synop_vec", columnDefinition = "float[]")
     private float[] synopVec;
 
-    @OneToMany(mappedBy = "webtoon")
+    @OneToMany(mappedBy = "webtoon" , fetch = FetchType.LAZY)
     private Set<LikeWebtoonList> likeWebtoonLists;
 
-    @OneToMany(mappedBy = "webtoon")
+    @OneToMany(mappedBy = "webtoon" , fetch = FetchType.LAZY)
     private Set<WebtoonComment> webtoonComments;
 
     @Column(name = "link", columnDefinition = "TEXT")

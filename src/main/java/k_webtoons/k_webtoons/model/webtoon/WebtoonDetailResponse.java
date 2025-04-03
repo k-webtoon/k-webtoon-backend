@@ -6,7 +6,7 @@ public record WebtoonDetailResponse(
         Long id,
         String titleName,
         String author,
-        String url,
+        String thumbnailUrl,
         String synopsis,
         String age,
         String starScore,

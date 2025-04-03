@@ -7,6 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +17,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     // 회원가입
+    @Transactional
     public UserResponse register(UserRegisterDTO dto) {
         if (userRepository.existsByUserEmail(dto.userEmail())) {
             throw new RuntimeException("이미 사용중인 이메일입니다.");
@@ -45,6 +47,7 @@ public class AuthService {
     }
 
     // 전화번호로 보안질문 검색
+    @Transactional(readOnly = true)
     public String getSecurityQuestionByPhoneNumber(VerifyPhoneNumberDTO request) {
         try {
             AppUser user = userRepository.findByPhoneNumber(request.phoneNumber())
@@ -56,6 +59,7 @@ public class AuthService {
     }
 
     // 보안답변으로 이메일 찾기
+    @Transactional(readOnly = true)
     public String findEmailBySecurityAnswer(SecurityQuestionRequest request) {
         try {
             AppUser user = userRepository.findByPhoneNumber(request.phoneNumber())
@@ -72,6 +76,7 @@ public class AuthService {
     }
 
     // 보안답변으로 비밀번호 변경
+    @Transactional
     public void changePassword(ChangePasswordRequest request) {
         try {
             AppUser user = userRepository.findByUserEmail(request.userEmail())
@@ -88,6 +93,8 @@ public class AuthService {
         }
     }
 
+    // 여기서부턴 로직용 함수
+
     public AppUser getAuthenticatedUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -98,8 +105,6 @@ public class AuthService {
         String userEmail = ((UserDetails) principal).getUsername();
         return userRepository.findByUserEmail(userEmail).orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
     }
-
-    // 여기서부턴 로직용 함수
 
     public AppUser getUserByUserId(Long userId) {
         return userRepository.findById(userId)
