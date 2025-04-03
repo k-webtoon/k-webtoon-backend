@@ -1,8 +1,6 @@
 package k_webtoons.k_webtoons.service.connector;
 
-import k_webtoons.k_webtoons.model.connector.FlaskRequest;
-import k_webtoons.k_webtoons.model.connector.FlaskResponse;
-import k_webtoons.k_webtoons.model.connector.WebtoonSimilarity;
+import k_webtoons.k_webtoons.model.connector.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -15,8 +13,9 @@ public class ConnectorService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final String FLASK_URL = "http://localhost:5000/api/process";
+    private final String FLASK_C_URL = "http://localhost:5000/api/sendC";
 
-    public FlaskResponse sendToFlask(FlaskRequest request) {
+    public ModelMResponse sendToFlask(ModelMRequest request) {
         Object response = restTemplate.postForObject(FLASK_URL, request, Object.class);
 
         if (response instanceof Map) {
@@ -28,9 +27,13 @@ public class ConnectorService {
                             (String) item.get("title_name"),
                             (Double) item.get("similarity")
                     )).collect(Collectors.toList());
-            return new FlaskResponse(similarities);
+            return new ModelMResponse(similarities);
         } else {
             throw new RuntimeException("Invalid response from Flask server");
         }
+    }
+
+    public ModelCResponse processModelC(ModelCRequest request) {
+        return restTemplate.postForObject(FLASK_C_URL, request, ModelCResponse.class);
     }
 }
