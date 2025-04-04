@@ -69,33 +69,51 @@ public class WebtoonCommentService {
 
     // ========= 댓글 조회 =========
     public Page<CommentResponseDTO> getCommentsByWebtoonId(Long webtoonId, int page, int size) {
-        try {
-            Webtoon webtoon = webtoonRepository.findById(webtoonId)
-                    .orElseThrow(() -> new CustomException("웹툰을 찾을 수 없습니다.", "WEBTOON_NOT_FOUND"));
+        // 1. 웹툰 존재 여부 확인 (EXISTS 쿼리)
+        boolean exists = webtoonRepository.existsById(webtoonId);
+        System.out.println("Webtoon exists? " + exists); // 로깅 추가
 
-            // id 역순 정렬
-            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
-
-            AppUser currentUser = getCurrentUserOrNull();
-
-            Page<WebtoonComment> comments = commentRepository.findByWebtoonAndDeletedDateTimeIsNull(webtoon, pageable);
-            return comments.map(comment -> mapCommentToDTO(comment, currentUser));
-        } catch (Exception e) {
-            throw new CustomException("댓글 조회 실패: " + e.getMessage(), "COMMENT_FETCH_FAILED");
+        if (!exists) {
+            throw new CustomException("웹툰을 찾을 수 없습니다.", "WEBTOON_NOT_FOUND");
         }
+
+        // 2. 댓글 조회
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<WebtoonComment> comments = commentRepository.findByWebtoonIdAndDeletedDateTimeIsNull(webtoonId, pageable);
+        System.out.println("Comments found: " + comments.getTotalElements()); // 로깅 추가
+
+        return comments.map(comment -> mapCommentToDTO(comment, getCurrentUserOrNull()));
     }
 
     // ========= 베스트 댓글 조회 =========
     public List<CommentResponseDTO> getBestComments(Long webtoonId) {
         try {
+            if (!webtoonRepository.existsById(webtoonId)) {
+                throw new CustomException("웹툰을 찾을 수 없습니다.", "WEBTOON_NOT_FOUND");
+            }
+
             List<WebtoonComment> bestComments = commentRepository.findTop3BestComments(webtoonId);
 
-            // 현재 사용자 정보 가져오기 (로그인하지 않은 경우 null 반환)
             AppUser currentUser = getCurrentUserOrNull();
-
             return bestComments.stream()
-                    .map(comment -> mapCommentToDTO(comment, currentUser))
+                    .map(comment -> {
+                        try {
+                            return mapCommentToDTO(comment, currentUser);
+                        } catch (Exception e) {
+                            System.err.println("베스트 댓글 매핑 실패: " + e.getMessage());
+                            return new CommentResponseDTO(
+                                    comment.getId(),
+                                    "삭제된 댓글입니다.", // 기본값 설정
+                                    "알 수 없음",
+                                    comment.getCreatedDate(),
+                                    0L,
+                                    false
+                            );
+                        }
+                    })
                     .collect(Collectors.toList());
+        } catch (CustomException e) {
+            throw e;
         } catch (Exception e) {
             throw new CustomException("베스트 댓글 조회 실패: " + e.getMessage(), "BEST_COMMENT_FETCH_FAILED");
         }
@@ -187,18 +205,30 @@ public class WebtoonCommentService {
     // ========= DTO 매핑 메서드 =========
     private CommentResponseDTO mapCommentToDTO(WebtoonComment comment, AppUser currentUser) {
         try {
-            // currentUser가 null이면 isLiked는 항상 false
+            // 1. 작성자 닉네임 추출 (null 체크 강화)
+            String nickname = "알 수 없음";
+            if (comment.getAppUser() != null && comment.getAppUser().getNickname() != null) {
+                nickname = comment.getAppUser().getNickname();
+            }
+
+            // 2. 좋아요 수 조회 (예외 처리 추가)
+            long likeCount = 0L;
+            try {
+                likeCount = likeRepository.countByWebtoonCommentAndIsLikedTrue(comment);
+            } catch (Exception e) {
+                System.err.println("좋아요 수 조회 실패: " + e.getMessage());
+            }
+
+            // 3. 좋아요 여부 확인
             boolean isLiked = currentUser != null &&
                     likeRepository.findByAppUserAndWebtoonComment(currentUser, comment)
-                            .filter(CommentLike::isLiked)
-                            .isPresent();
-
-            long likeCount = likeRepository.countByWebtoonCommentAndIsLikedTrue(comment);
+                            .map(CommentLike::isLiked)
+                            .orElse(false);
 
             return new CommentResponseDTO(
                     comment.getId(),
                     comment.getContent(),
-                    comment.getAppUser().getNickname(),
+                    nickname,
                     comment.getCreatedDate(),
                     likeCount,
                     isLiked

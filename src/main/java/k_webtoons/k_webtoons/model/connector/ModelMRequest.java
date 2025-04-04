@@ -1,6 +1,6 @@
 package k_webtoons.k_webtoons.model.connector;
 
-public record FlaskRequest(
+public record ModelMRequest(
         String message
 ) {
 }

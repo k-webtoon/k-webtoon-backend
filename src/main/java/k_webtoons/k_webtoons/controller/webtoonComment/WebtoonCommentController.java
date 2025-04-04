@@ -63,15 +63,18 @@ public class WebtoonCommentController {
     @GetMapping("/{webtoonId}")
     public ResponseEntity<Page<CommentResponseDTO>> getCommentsByWebtoonId(
             @PathVariable Long webtoonId,
-            @Parameter(description = "페이지 번호 (기본값: 0)", example = "0")
             @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "페이지 크기 (기본값: 6)", example = "10")
             @RequestParam(defaultValue = "6") int size) {
         try {
             Page<CommentResponseDTO> comments = service.getCommentsByWebtoonId(webtoonId, page, size);
+            System.out.println("API Response: " + comments); // 로깅 추가
             return ResponseEntity.ok(comments);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (CustomException e) {
+            System.out.println("Error Code: " + e.getErrorCode()); // 로깅 추가
+            if ("WEBTOON_NOT_FOUND".equals(e.getErrorCode())) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.internalServerError().build();
         }
     }
 
@@ -196,20 +199,20 @@ public class WebtoonCommentController {
     )
     @GetMapping("/best/{webtoonId}")
     public ResponseEntity<List<CommentResponseDTO>> getBestComments(
-            @Parameter(description = "웹툰 ID", required = true, example = "1")
             @PathVariable Long webtoonId
     ) {
         try {
             List<CommentResponseDTO> bestComments = service.getBestComments(webtoonId);
             return ResponseEntity.ok(bestComments);
         } catch (CustomException e) {
-            if ("WEBTOON_NOT_FOUND".equals(e.getErrorCode())) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.internalServerError().build();
+            return switch (e.getErrorCode()) {
+                case "WEBTOON_NOT_FOUND" -> ResponseEntity.notFound().build();
+                case "BEST_COMMENT_FETCH_FAILED" -> ResponseEntity.internalServerError().body(List.of());
+                default -> ResponseEntity.internalServerError().build();
+            };
         } catch (Exception e) {
+            System.err.println("예상치 못한 오류: " + e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
-
 }

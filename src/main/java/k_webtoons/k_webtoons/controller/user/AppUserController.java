@@ -6,16 +6,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import k_webtoons.k_webtoons.model.auth.AppUser;
-import k_webtoons.k_webtoons.model.user.FollowAppUserDTO;
-import k_webtoons.k_webtoons.model.user.LikeWebtoonDTO;
-import k_webtoons.k_webtoons.model.user.UserCommentResponseDTO;
-import k_webtoons.k_webtoons.model.user.UserInfoDTO;
+import k_webtoons.k_webtoons.model.user.*;
+import k_webtoons.k_webtoons.model.user_follow.FollowUserDTO;
 import k_webtoons.k_webtoons.security.HeaderValidator;
 import k_webtoons.k_webtoons.service.user.AppUserService;
 import k_webtoons.k_webtoons.service.user.UserFollowService;
 import k_webtoons.k_webtoons.service.webtoon.LikeWebtoonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -90,15 +90,9 @@ public class AppUserController {
             }
     )
     @GetMapping("/{userId}/followees")
-    public ResponseEntity<List<FollowAppUserDTO>> getFollowees(@PathVariable Long userId) {
-        List<AppUser> followees = userFollowService.getFollowees(userId);
-        return ResponseEntity.ok(followees.stream()
-                .map(followee -> new FollowAppUserDTO(
-                        followee.getIndexId(),
-                        followee.getUserEmail(),
-                        followee.getNickname()
-                ))
-                .collect(Collectors.toList()));
+    public ResponseEntity<List<FollowUserDTO>> getFollowees(@PathVariable Long userId) {
+        List<FollowUserDTO> followees = userFollowService.getFollowees(userId);
+        return ResponseEntity.ok(followees);
     }
 
     @Operation(
@@ -113,15 +107,9 @@ public class AppUserController {
             }
     )
     @GetMapping("/{userId}/followers")
-    public ResponseEntity<List<FollowAppUserDTO>> getFollowers(@PathVariable Long userId) {
-        List<AppUser> followers = userFollowService.getFollowers(userId);
-        return ResponseEntity.ok(followers.stream()
-                .map(follower -> new FollowAppUserDTO(
-                        follower.getIndexId(),
-                        follower.getUserEmail(),
-                        follower.getNickname()
-                ))
-                .collect(Collectors.toList()));
+    public ResponseEntity<List<FollowUserDTO>> getFollowers(@PathVariable Long userId) {
+        List<FollowUserDTO> followers = userFollowService.getFollowers(userId);
+        return ResponseEntity.ok(followers);
     }
 
     @Operation(
@@ -137,9 +125,39 @@ public class AppUserController {
             }
     )
     @GetMapping("/me")
-    public ResponseEntity<UserInfoDTO> getCurrentUserInfo() {
+    public ResponseEntity<MyInfoDTO> getCurrentUserInfo() {
+
         AppUser currentUser = headerValidator.getAuthenticatedUser();
-        return ResponseEntity.ok(userService.getUserInfoByUserId(currentUser.getIndexId()));
+
+        String role = extractRoleFromSecurityContext();
+
+        UserInfoDTO userInfo = userService.getUserInfoByUserId(currentUser.getIndexId());
+
+        return ResponseEntity.ok(mapToMyInfoDTO(userInfo, role));
     }
 
+    // SecurityContext에서 역할 추출
+    private String extractRoleFromSecurityContext() {
+        return SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .map(authority -> authority.replace("ROLE_", "")) // "ROLE_" 제거
+                .orElse("USER"); // 기본값
+    }
+
+    // UserInfoDTO → MyInfoDTO 변환
+    private MyInfoDTO mapToMyInfoDTO(UserInfoDTO userInfo, String role) {
+        return new MyInfoDTO(
+                userInfo.indexId(),
+                userInfo.userEmail(),
+                userInfo.nickname(),
+                userInfo.userAge(),
+                userInfo.gender(),
+                userInfo.commentCount(),
+                userInfo.followerCount(),
+                userInfo.followeeCount(),
+                role
+        );
+    }
 }

@@ -19,4 +19,6 @@ public interface LikeWebtoonListRepository extends JpaRepository<LikeWebtoonList
 
     @Query("SELECT lwl FROM LikeWebtoonList lwl JOIN FETCH lwl.webtoon WHERE lwl.appUser.indexId = :userId")
     List<LikeWebtoonList> findLikedWebtoonsByUserId(@Param("userId") Long userId);
+
+    List<LikeWebtoonList> findByAppUser(AppUser appUser);
 }

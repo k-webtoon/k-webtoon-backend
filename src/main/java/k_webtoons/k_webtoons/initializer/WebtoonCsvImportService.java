@@ -1,18 +1,22 @@
-package k_webtoons.k_webtoons.service.webtoon;
+package k_webtoons.k_webtoons.initializer;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.RFC4180Parser;
 import com.opencsv.exceptions.CsvException;
+import k_webtoons.k_webtoons.model.cosine_sim.CosineSimTable;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
+import k_webtoons.k_webtoons.repository.cosine_sim.CosineSimTableRepository;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -94,6 +98,52 @@ public class WebtoonCsvImportService {
 
                 webtoonRepository.save(webtoon);
             }
+        }
+    }
+
+    @Autowired
+    private CosineSimTableRepository cosineTableRepository;
+
+    public void saveWebtoonsFromCSV_2(String filePath) {
+        int batchSize = 2000; // 배치 크기 설정
+        List<CosineSimTable> batchList = new ArrayList<>();
+        long totalCount = 0; // 총 삽입된 데이터 개수
+
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            boolean firstLine = true;
+
+            while ((line = br.readLine()) != null) {
+                if (firstLine) {
+                    firstLine = false;
+                    continue; // 첫 줄(헤더) 건너뛰기
+                }
+
+                String[] data = line.split(",");
+                CosineSimTable similarity = new CosineSimTable();
+                similarity.setWebtoon1(Long.parseLong(data[0]));
+                similarity.setWebtoon2(Long.parseLong(data[1]));
+                similarity.setSimilarityScore(Double.parseDouble(data[2]));
+
+                batchList.add(similarity);
+                totalCount++;
+
+                if (batchList.size() >= batchSize) {
+                    cosineTableRepository.saveAll(batchList); // 배치 삽입
+                    batchList.clear(); // 리스트 초기화
+                    System.out.println("현재 진행: " + totalCount + "개 삽입 완료...");
+                }
+            }
+
+            if (!batchList.isEmpty()) {
+                cosineTableRepository.saveAll(batchList); // 남은 데이터 삽입
+                System.out.println("현재 진행: " + totalCount + "개 삽입 완료...");
+            }
+
+            System.out.println("✅ 전체 데이터 삽입 완료! 총 " + totalCount + "개");
+
+        } catch (IOException e) {
+            throw new RuntimeException("유사도 CSV 파일 읽기 실패: " + filePath, e);
         }
     }
 

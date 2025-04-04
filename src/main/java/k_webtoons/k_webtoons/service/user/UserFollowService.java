@@ -7,9 +7,11 @@ import java.util.stream.Collectors;
 import jakarta.persistence.EntityNotFoundException;
 import k_webtoons.k_webtoons.exception.CustomException;
 import k_webtoons.k_webtoons.model.auth.AppUser;
+import k_webtoons.k_webtoons.model.user_follow.FollowUserDTO;
 import k_webtoons.k_webtoons.model.user_follow.UserFollow;
 import k_webtoons.k_webtoons.repository.user.UserRepository;
 import k_webtoons.k_webtoons.repository.userFollower.UserFollowRepository;
+import k_webtoons.k_webtoons.security.HeaderValidator;
 import k_webtoons.k_webtoons.service.auth.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,22 +23,19 @@ public class UserFollowService {
 
     private final UserFollowRepository userFollowRepository;
     private final UserRepository appUserRepository;
-    private final AuthService authService;
+    private final HeaderValidator headerValidator; // HeaderValidator 주입
 
-    public void follow(long followerId, long followeeId) {
+    @Transactional
+    public void follow(long followeeId) {
         try {
-            AppUser authenticatedUser = authService.getAuthenticatedUser();
-
-            if (authenticatedUser.getIndexId() != followerId) {
-                throw new CustomException("권한이 없습니다.", "UNAUTHORIZED");
-            }
+            AppUser authenticatedUser = headerValidator.getAuthenticatedUser(); // 토큰에서 인증된 사용자 가져오기
+            long followerId = authenticatedUser.getIndexId();
 
             if (followerId == followeeId) {
                 throw new IllegalArgumentException("자기 자신은 팔로우할 수 없습니다.");
             }
 
-            AppUser follower = appUserRepository.findById(followerId)
-                    .orElseThrow(() -> new EntityNotFoundException("팔로워 유저 없음"));
+            AppUser follower = authenticatedUser; // 인증된 사용자를 팔로워로 설정
             AppUser followee = appUserRepository.findById(followeeId)
                     .orElseThrow(() -> new EntityNotFoundException("팔로이 유저 없음"));
 
@@ -49,23 +48,23 @@ public class UserFollowService {
                         .build();
                 userFollowRepository.save(follow);
             }
+        } catch (EntityNotFoundException e) {
+            throw new CustomException("유저를 찾을 수 없습니다: " + e.getMessage(), "USER_NOT_FOUND");
+        } catch (IllegalArgumentException e) {
+            throw new CustomException("잘못된 요청: " + e.getMessage(), "INVALID_REQUEST");
         } catch (Exception e) {
             throw new CustomException("팔로우 작업 중 오류가 발생했습니다.", "FOLLOW_ERROR");
         }
     }
 
     @Transactional
-    public void unfollow(int followerId, int followeeId) {
+    public void unfollow(long followeeId) {
         try {
-            AppUser authenticatedUser = authService.getAuthenticatedUser();
+            AppUser authenticatedUser = headerValidator.getAuthenticatedUser(); // 토큰에서 인증된 사용자 가져오기
+            long followerId = authenticatedUser.getIndexId();
 
-            if (authenticatedUser.getIndexId() != followerId) {
-                throw new CustomException("권한이 없습니다.", "UNAUTHORIZED");
-            }
-
-            AppUser follower = appUserRepository.findById((long) followerId)
-                    .orElseThrow(() -> new EntityNotFoundException("팔로워 유저 없음"));
-            AppUser followee = appUserRepository.findById((long) followeeId)
+            AppUser follower = authenticatedUser; // 인증된 사용자를 팔로워로 설정
+            AppUser followee = appUserRepository.findById(followeeId)
                     .orElseThrow(() -> new EntityNotFoundException("팔로이 유저 없음"));
 
             boolean exists = userFollowRepository.existsByFollowerAndFollowee(follower, followee);
@@ -74,36 +73,86 @@ public class UserFollowService {
             }
 
             userFollowRepository.deleteByFollowerAndFollowee(follower, followee);
+        } catch (EntityNotFoundException e) {
+            throw new CustomException("유저를 찾을 수 없습니다: " + e.getMessage(), "USER_NOT_FOUND");
+        } catch (IllegalStateException e) {
+            throw new CustomException("잘못된 요청: " + e.getMessage(), "INVALID_REQUEST");
         } catch (Exception e) {
             throw new CustomException("언팔로우 작업 중 오류가 발생했습니다.", "UNFOLLOW_ERROR");
         }
     }
 
-    // 팔로워 목록 조회 (어드민 제외)
-    public List<AppUser> getFollowers(long userId) {
-        AppUser user = authService.getUserByUserIdNotAdmin(userId);
-        return userFollowRepository.findByFollowee(user).stream()
-                .map(UserFollow::getFollower)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public List<FollowUserDTO> getFollowers(long userId) {
+        try {
+            AppUser user = appUserRepository.findById(userId)
+                    .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다."));
+
+            return userFollowRepository.findByFollowee(user).stream()
+                    .map(UserFollow::getFollower)
+                    .map(follower -> new FollowUserDTO(
+                            follower.getIndexId(),
+                            follower.getUserEmail(),
+                            follower.getNickname(),
+                            follower.getUserAge(),
+                            follower.getGender()
+                    ))
+                    .collect(Collectors.toList());
+        } catch (EntityNotFoundException e) {
+            throw new CustomException("유저를 찾을 수 없습니다: " + e.getMessage(), "USER_NOT_FOUND");
+        } catch (Exception e) {
+            throw new CustomException("팔로워 목록 조회 중 오류가 발생했습니다.", "GET_FOLLOWERS_ERROR");
+        }
     }
 
-    // 팔로잉 목록 조회 (어드민 제외)
-    public List<AppUser> getFollowees(long userId) {
-        AppUser user = authService.getUserByUserIdNotAdmin(userId);
-        return userFollowRepository.findByFollower(user).stream()
-                .map(UserFollow::getFollowee)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public List<FollowUserDTO> getFollowees(long userId) {
+        try {
+            AppUser user = appUserRepository.findById(userId)
+                    .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다."));
+
+            return userFollowRepository.findByFollower(user).stream()
+                    .map(UserFollow::getFollowee)
+                    .map(followee -> new FollowUserDTO(
+                            followee.getIndexId(),
+                            followee.getUserEmail(),
+                            followee.getNickname(),
+                            followee.getUserAge(),
+                            followee.getGender()
+                    ))
+                    .collect(Collectors.toList());
+        } catch (EntityNotFoundException e) {
+            throw new CustomException("유저를 찾을 수 없습니다: " + e.getMessage(), "USER_NOT_FOUND");
+        } catch (Exception e) {
+            throw new CustomException("팔로잉 목록 조회 중 오류가 발생했습니다.", "GET_FOLLOWEES_ERROR");
+        }
     }
 
-    // 팔로워 수 조회 (어드민 제외)
+    @Transactional(readOnly = true)
     public long getFollowerCount(long userId) {
-        AppUser user = authService.getUserByUserIdNotAdmin(userId);
-        return userFollowRepository.countByFollowee(user);
+        try {
+            AppUser user = appUserRepository.findById(userId)
+                    .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다."));
+
+            return userFollowRepository.countByFollowee(user);
+        } catch (EntityNotFoundException e) {
+            throw new CustomException("유저를 찾을 수 없습니다: " + e.getMessage(), "USER_NOT_FOUND");
+        } catch (Exception e) {
+            throw new CustomException("팔로워 수 조회 중 오류가 발생했습니다.", "GET_FOLLOWER_COUNT_ERROR");
+        }
     }
 
-    // 팔로잉 수 조회 (어드민 제외)
+    @Transactional(readOnly = true)
     public long getFolloweeCount(long userId) {
-        AppUser user = authService.getUserByUserIdNotAdmin(userId);
-        return userFollowRepository.countByFollower(user);
+        try {
+            AppUser user = appUserRepository.findById(userId)
+                    .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다."));
+
+            return userFollowRepository.countByFollower(user);
+        } catch (EntityNotFoundException e) {
+            throw new CustomException("유저를 찾을 수 없습니다: " + e.getMessage(), "USER_NOT_FOUND");
+        } catch (Exception e) {
+            throw new CustomException("팔로잉 수 조회 중 오류가 발생했습니다.", "GET_FOLLOWEE_COUNT_ERROR");
+        }
     }
 }
