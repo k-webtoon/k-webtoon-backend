@@ -27,4 +27,10 @@ public interface WebtoonRepository extends JpaRepository<Webtoon, Long> {
     @Query("SELECT w FROM Webtoon w JOIN w.tags t WHERE t LIKE %:tag% ORDER BY w.totalCount DESC")
     Page<Webtoon> findByTag(@Param("tag") String tag, Pageable pageable);
 
+    @Query("SELECT w.titleName FROM Webtoon w WHERE w.id = :webtoonId")
+    String findTitleById(@Param("webtoonId") Long webtoonId);
+
+    @Query("SELECT w.thumbnailUrl FROM Webtoon w WHERE w.id = :webtoonId")
+    String findThumbnailUrlById(@Param("webtoonId") Long webtoonId);
+
 }

@@ -1,13 +1,12 @@
 package k_webtoons.k_webtoons.controller.connector;
 
-import k_webtoons.k_webtoons.model.connector.ModelCRequest;
-import k_webtoons.k_webtoons.model.connector.ModelCResponse;
-import k_webtoons.k_webtoons.model.connector.ModelMRequest;
-import k_webtoons.k_webtoons.model.connector.ModelMResponse;
+import k_webtoons.k_webtoons.model.connector.*;
 import k_webtoons.k_webtoons.service.connector.ConnectorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,6 +24,11 @@ public class ConnectorController {
     @PostMapping("/sendC")
     public ModelCResponse sendC(@RequestBody ModelCRequest request) {
         return connectorService.processModelC(request);
+    }
+
+    @PostMapping("/sendL")
+    public List<ModelLResponse> sendL(@RequestBody ModelLRequest request) {
+        return connectorService.sendToFlaskL(request);
     }
 
 }
