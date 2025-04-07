@@ -1,4 +1,4 @@
-package k_webtoons.k_webtoons.model.webtoonComment;
+package k_webtoons.k_webtoons.model.webtoonComment.dto;
 
 import java.time.LocalDateTime;
 

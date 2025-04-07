@@ -1,7 +1,9 @@
 package k_webtoons.k_webtoons.model.auth;
 
 import jakarta.persistence.*;
-import k_webtoons.k_webtoons.model.webtoon.LikeWebtoonList;
+import k_webtoons.k_webtoons.model.user.userActivity.UserActivity;
+import k_webtoons.k_webtoons.model.webtoon.RecommendWebtoon;
+import k_webtoons.k_webtoons.model.webtoon.UserWebtoonReview;
 import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,10 +51,13 @@ public class AppUser {
     private String role;
 
     @OneToMany(mappedBy = "appUser")
-    private Set<LikeWebtoonList> likeWebtoonLists ;
+    private Set<UserWebtoonReview> userWebtoonReviews;
 
     @OneToMany(mappedBy = "appUser")
     private List<WebtoonComment> webtoonComments;  // 사용자가 작성한 웹툰 댓글 목록
+
+    @OneToMany(mappedBy = "appUser")
+    private Set<RecommendWebtoon> recommendWebtoons;
 
     @Column(unique = true)
     private String phoneNumber;
@@ -61,6 +66,9 @@ public class AppUser {
 
     @JsonIgnore
     private String securityAnswer;
+
+    @OneToOne(mappedBy = "appUser" , cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private UserActivity userActivity;
 
     public AppUser(String userEmail, String userPassword, Integer userAge, String gender, String nickname, String role, String phoneNumber, String securityQuestion, String securityAnswer) {
         this.userEmail = userEmail;

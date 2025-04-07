@@ -2,13 +2,12 @@ package k_webtoons.k_webtoons.service.webtoon;
 
 import k_webtoons.k_webtoons.exception.WebtoonNotFoundException;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
-import k_webtoons.k_webtoons.model.webtoon.WebtoonDetailResponse;
-import k_webtoons.k_webtoons.model.webtoon.WebtoonViewCountResponse;
+import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonDetailResponse;
+import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -117,8 +116,8 @@ public class WebtoonService {
         if (webtoon.getTags() != null) {
             webtoon.getTags().size();
         }
-        if (webtoon.getLikeWebtoonLists() != null) {
-            webtoon.getLikeWebtoonLists().size();
+        if (webtoon.getUserWebtoonReviews() != null) {
+            webtoon.getUserWebtoonReviews().size();
         }
         if (webtoon.getWebtoonComments() != null) {
             webtoon.getWebtoonComments().size();

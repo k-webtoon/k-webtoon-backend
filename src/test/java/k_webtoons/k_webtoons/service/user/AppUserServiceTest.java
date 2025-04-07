@@ -5,12 +5,11 @@ import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.user.LikeWebtoonDTO;
 import k_webtoons.k_webtoons.model.user.UserCommentResponseDTO;
 import k_webtoons.k_webtoons.model.user.UserInfoDTO;
-import k_webtoons.k_webtoons.model.webtoon.LikeWebtoonList;
+import k_webtoons.k_webtoons.model.webtoon.UserWebtoonReview;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
-import k_webtoons.k_webtoons.model.webtoonComment.CommentLike;
 import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
 import k_webtoons.k_webtoons.repository.user.UserRepository;
-import k_webtoons.k_webtoons.repository.webtoon.LikeWebtoonListRepository;
+import k_webtoons.k_webtoons.repository.webtoon.UserWebtoonReviewRepository;
 import k_webtoons.k_webtoons.repository.webtoonComment.WebtoonCommentRepository;
 import k_webtoons.k_webtoons.service.auth.AuthService;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +24,6 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +42,7 @@ class AppUserServiceTest {
     private WebtoonCommentRepository webtoonCommentRepository;
 
     @Mock
-    private LikeWebtoonListRepository likeWebtoonListRepository;
+    private UserWebtoonReviewRepository userWebtoonReviewRepository;
 
     @InjectMocks
     private AppUserService appUserService;
@@ -178,12 +176,12 @@ class AppUserServiceTest {
         webtoon.setTitleName("인기 웹툰");
         webtoon.setThumbnailUrl("thumbnail.jpg");
 
-        LikeWebtoonList likeWebtoon = new LikeWebtoonList();
+        UserWebtoonReview likeWebtoon = new UserWebtoonReview();
         likeWebtoon.setWebtoon(webtoon);
         likeWebtoon.setAppUser(mockUser);
 
         when(authService.getUserByUserIdNotAdmin(userId)).thenReturn(mockUser);
-        when(likeWebtoonListRepository.findLikedWebtoonsByUserId(userId)).thenReturn(List.of(likeWebtoon));
+        when(userWebtoonReviewRepository.findLikedWebtoonsByUserId(userId)).thenReturn(List.of(likeWebtoon));
 
         // When
         List<LikeWebtoonDTO> results = appUserService.getLikedWebtoonsByUserId(userId);
@@ -195,7 +193,7 @@ class AppUserServiceTest {
         assertThat(results.get(0).thumbnailUrl()).isEqualTo("thumbnail.jpg");
 
         verify(authService, times(1)).getUserByUserIdNotAdmin(userId);
-        verify(likeWebtoonListRepository, times(1)).findLikedWebtoonsByUserId(userId);
+        verify(userWebtoonReviewRepository, times(1)).findLikedWebtoonsByUserId(userId);
     }
 
     @Test

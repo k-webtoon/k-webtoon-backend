@@ -1,7 +1,7 @@
 package k_webtoons.k_webtoons.controller.webtoon;
 
-import k_webtoons.k_webtoons.model.webtoon.WebtoonDetailResponse;
-import k_webtoons.k_webtoons.model.webtoon.WebtoonViewCountResponse;
+import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonDetailResponse;
+import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.service.webtoon.WebtoonService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

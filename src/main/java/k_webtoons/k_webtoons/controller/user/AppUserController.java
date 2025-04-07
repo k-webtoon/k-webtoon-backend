@@ -11,7 +11,6 @@ import k_webtoons.k_webtoons.model.user_follow.FollowUserDTO;
 import k_webtoons.k_webtoons.security.HeaderValidator;
 import k_webtoons.k_webtoons.service.user.AppUserService;
 import k_webtoons.k_webtoons.service.user.UserFollowService;
-import k_webtoons.k_webtoons.service.webtoon.LikeWebtoonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,7 +18,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/user")

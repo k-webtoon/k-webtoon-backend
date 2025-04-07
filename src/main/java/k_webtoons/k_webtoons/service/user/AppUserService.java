@@ -2,22 +2,19 @@ package k_webtoons.k_webtoons.service.user;
 
 import k_webtoons.k_webtoons.exception.CustomException;
 import k_webtoons.k_webtoons.model.auth.AppUser;
-import k_webtoons.k_webtoons.model.webtoon.LikeWebtoonList;
+import k_webtoons.k_webtoons.model.webtoon.UserWebtoonReview;
 import k_webtoons.k_webtoons.model.user.LikeWebtoonDTO;
 import k_webtoons.k_webtoons.model.user.UserCommentResponseDTO;
 import k_webtoons.k_webtoons.model.user.UserInfoDTO;
 import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
 import k_webtoons.k_webtoons.repository.user.UserRepository;
-import k_webtoons.k_webtoons.repository.webtoon.LikeWebtoonListRepository;
+import k_webtoons.k_webtoons.repository.webtoon.UserWebtoonReviewRepository;
 import k_webtoons.k_webtoons.repository.webtoonComment.WebtoonCommentRepository;
 import k_webtoons.k_webtoons.service.auth.AuthService;
-import k_webtoons.k_webtoons.service.webtoon.LikeWebtoonService;
-import k_webtoons.k_webtoons.service.webtoon.WebtoonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,7 +27,7 @@ public class AppUserService {
     private final UserFollowService userFollowService;
     private final AuthService authService;
     private final WebtoonCommentRepository webtoonCommentRepository;
-    private final LikeWebtoonListRepository likeWebtoonListRepository;
+    private final UserWebtoonReviewRepository userWebtoonReviewRepository;
 
     // 사용자 정보 조회 (어드민 제외)
     public UserInfoDTO getUserInfoByUserId(Long userId) {
@@ -89,7 +86,7 @@ public class AppUserService {
     public List<LikeWebtoonDTO> getLikedWebtoonsByUserId(Long userId) {
         try {
             AppUser user = authService.getUserByUserIdNotAdmin(userId); // ✅ 어드민 제외
-            List<LikeWebtoonList> likedWebtoons = likeWebtoonListRepository.findLikedWebtoonsByUserId(user.getIndexId());
+            List<UserWebtoonReview> likedWebtoons = userWebtoonReviewRepository.findLikedWebtoonsByUserId(user.getIndexId());
 
             return likedWebtoons.stream()
                     .map(like -> new LikeWebtoonDTO(
