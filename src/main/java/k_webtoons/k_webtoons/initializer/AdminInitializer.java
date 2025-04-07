@@ -37,7 +37,7 @@ public class AdminInitializer implements CommandLineRunner {
                     adminEmail,                            // 이메일
                     passwordEncoder.encode(adminPassword), // 비밀번호 (암호화)
                     20,                                    // 나이 (하드코딩 가능)
-                    "남자",                                // 성별 (하드코딩 가능)
+                    "남",                                // 성별 (하드코딩 가능)
                     "SuperAdmin",                          // 닉네임 (하드코딩 가능)
                     "ADMIN",                               // 역할 (어드민)
                     adminPhone,                            // 전화번호

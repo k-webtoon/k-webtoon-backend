@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
 
 import java.util.List;
@@ -126,10 +125,13 @@ public class Webtoon {
     private float[] synopVec;
 
     @OneToMany(mappedBy = "webtoon" , fetch = FetchType.LAZY)
-    private Set<LikeWebtoonList> likeWebtoonLists;
+    private Set<UserWebtoonReview> userWebtoonReviews;
 
     @OneToMany(mappedBy = "webtoon" , fetch = FetchType.LAZY)
     private Set<WebtoonComment> webtoonComments;
+
+    @OneToMany(mappedBy = "webtoon" , fetch = FetchType.LAZY)
+    private Set<RecommendWebtoon> recommendWebtoons;
 
     @Column(name = "link", columnDefinition = "TEXT")
     private String link;

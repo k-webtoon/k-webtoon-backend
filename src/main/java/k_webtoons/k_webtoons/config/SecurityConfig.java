@@ -54,6 +54,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/**").permitAll()
                         .requestMatchers("/api/webtoon/like/**").permitAll()
                         .requestMatchers("/api/connector/**").permitAll()
+                        .requestMatchers("/api/user-activity").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

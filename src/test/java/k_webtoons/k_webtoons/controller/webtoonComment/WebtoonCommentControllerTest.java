@@ -1,8 +1,8 @@
 package k_webtoons.k_webtoons.controller.webtoonComment;
 
 import k_webtoons.k_webtoons.exception.CustomException;
-import k_webtoons.k_webtoons.model.webtoonComment.CommentRequestDTO;
-import k_webtoons.k_webtoons.model.webtoonComment.CommentResponseDTO;
+import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentRequestDTO;
+import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentResponseDTO;
 import k_webtoons.k_webtoons.service.webtoonComment.WebtoonCommentService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,9 +20,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

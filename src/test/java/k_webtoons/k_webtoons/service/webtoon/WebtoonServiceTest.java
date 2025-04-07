@@ -2,8 +2,8 @@ package k_webtoons.k_webtoons.service.webtoon;
 
 import k_webtoons.k_webtoons.exception.WebtoonNotFoundException;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
-import k_webtoons.k_webtoons.model.webtoon.WebtoonDetailResponse;
-import k_webtoons.k_webtoons.model.webtoon.WebtoonViewCountResponse;
+import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonDetailResponse;
+import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

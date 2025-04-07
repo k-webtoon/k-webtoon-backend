@@ -1,14 +1,13 @@
 package k_webtoons.k_webtoons.controller.webtoonComment;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import k_webtoons.k_webtoons.exception.CustomException;
-import k_webtoons.k_webtoons.model.webtoonComment.CommentRequestDTO;
-import k_webtoons.k_webtoons.model.webtoonComment.CommentResponseDTO;
+import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentRequestDTO;
+import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentResponseDTO;
 import k_webtoons.k_webtoons.service.webtoonComment.WebtoonCommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

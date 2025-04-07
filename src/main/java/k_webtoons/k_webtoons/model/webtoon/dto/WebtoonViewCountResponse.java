@@ -1,4 +1,4 @@
-package k_webtoons.k_webtoons.model.webtoon;
+package k_webtoons.k_webtoons.model.webtoon.dto;
 
 import java.util.List;
 

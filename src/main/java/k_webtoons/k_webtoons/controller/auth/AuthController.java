@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import k_webtoons.k_webtoons.model.auth.*;
+import k_webtoons.k_webtoons.model.auth.dto.*;
 import k_webtoons.k_webtoons.security.JwtUtil;
 import k_webtoons.k_webtoons.security.AppUserDetails;
 import k_webtoons.k_webtoons.service.auth.AuthService;
