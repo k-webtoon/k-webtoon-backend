@@ -5,11 +5,13 @@ import k_webtoons.k_webtoons.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Order(1) // AdminInitializer를 먼저 실행되도록 설정
 public class AdminInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
