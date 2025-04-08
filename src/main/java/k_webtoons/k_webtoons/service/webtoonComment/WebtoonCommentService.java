@@ -41,30 +41,24 @@ public class WebtoonCommentService {
     }
 
     // ========= 댓글 작성 =========
+    @Transactional
     public CommentResponseDTO addComment(Long webtoonId, CommentRequestDTO requestDto) {
-        try {
-            AppUser appUser = headerValidator.getAuthenticatedUser();
-            Webtoon webtoon = webtoonRepository.findById(webtoonId)
-                    .orElseThrow(() -> new CustomException("웹툰을 찾을 수 없습니다.", "WEBTOON_NOT_FOUND"));
+        AppUser appUser = headerValidator.getAuthenticatedUser();
 
-            WebtoonComment comment = WebtoonComment.builder()
-                    .appUser(appUser)
-                    .webtoon(webtoon)
-                    .content(requestDto.content())
-                    .build();
+        Webtoon webtoon = webtoonRepository.findById(webtoonId)
+                .orElseThrow(() -> new CustomException("웹툰 조회 실패", "WEBTOON_NOT_FOUND"));
 
-            WebtoonComment savedComment = commentRepository.save(comment);
-            return new CommentResponseDTO(
-                    savedComment.getId(),
-                    savedComment.getContent(),
-                    appUser.getNickname(),
-                    savedComment.getCreatedDate(),
-                    0L,
-                    false
-            );
-        } catch (Exception e) {
-            throw new CustomException("댓글 작성 실패: " + e.getMessage(), "COMMENT_CREATE_FAILED");
-        }
+        // 댓글 생성 시 연관관계 직접 설정
+        WebtoonComment comment = WebtoonComment.builder()
+                .content(requestDto.content())
+                .appUser(appUser)
+                .webtoon(webtoon)
+                .build();
+
+        WebtoonComment savedComment = commentRepository.save(comment);
+
+        // 즉시 DTO 변환으로 영속성 컨텍스트 분리
+        return convertToDto(savedComment);
     }
 
     // ========= 댓글 조회 =========
@@ -87,35 +81,47 @@ public class WebtoonCommentService {
 
     // ========= 베스트 댓글 조회 =========
     public List<CommentResponseDTO> getBestComments(Long webtoonId) {
+        if (!webtoonRepository.existsById(webtoonId)) {
+            throw new CustomException("웹툰을 찾을 수 없습니다.", "WEBTOON_NOT_FOUND");
+        }
+
+        Pageable pageable = PageRequest.of(0, 3);
+        List<Object[]> bestCommentsWithCount = commentRepository.findTop3BestCommentsWithLikeCount(webtoonId, pageable);
+
+        return bestCommentsWithCount.stream()
+                .map(result -> new CommentResponseDTO(
+                        ((Number) result[0]).longValue(), // commentId
+                        (String) result[1],               // content
+                        (String) result[2],               // nickname
+                        null,                             // createdDate (생략 가능)
+                        ((Number) result[3]).longValue(), // likeCount
+                        false                             // isLiked (기본값)
+                ))
+                .toList();
+    }
+
+    private CommentResponseDTO mapCommentToDTOWithLikeCount(WebtoonComment comment, Long likeCount, AppUser currentUser) {
         try {
-            if (!webtoonRepository.existsById(webtoonId)) {
-                throw new CustomException("웹툰을 찾을 수 없습니다.", "WEBTOON_NOT_FOUND");
+            String nickname = "알 수 없음";
+            if (comment.getAppUser() != null && comment.getAppUser().getNickname() != null) {
+                nickname = comment.getAppUser().getNickname();
             }
 
-            List<WebtoonComment> bestComments = commentRepository.findTop3BestComments(webtoonId);
+            boolean isLiked = currentUser != null &&
+                    likeRepository.findByAppUserAndWebtoonComment(currentUser, comment)
+                            .map(CommentLike::isLiked)
+                            .orElse(false);
 
-            AppUser currentUser = getCurrentUserOrNull();
-            return bestComments.stream()
-                    .map(comment -> {
-                        try {
-                            return mapCommentToDTO(comment, currentUser);
-                        } catch (Exception e) {
-                            System.err.println("베스트 댓글 매핑 실패: " + e.getMessage());
-                            return new CommentResponseDTO(
-                                    comment.getId(),
-                                    "삭제된 댓글입니다.", // 기본값 설정
-                                    "알 수 없음",
-                                    comment.getCreatedDate(),
-                                    0L,
-                                    false
-                            );
-                        }
-                    })
-                    .collect(Collectors.toList());
-        } catch (CustomException e) {
-            throw e;
+            return new CommentResponseDTO(
+                    comment.getId(),
+                    comment.getContent(),
+                    nickname,
+                    comment.getCreatedDate(),
+                    likeCount,
+                    isLiked
+            );
         } catch (Exception e) {
-            throw new CustomException("베스트 댓글 조회 실패: " + e.getMessage(), "BEST_COMMENT_FETCH_FAILED");
+            throw new CustomException("댓글 매핑 실패: " + e.getMessage(), "COMMENT_MAPPING_FAILED");
         }
     }
 
@@ -245,6 +251,17 @@ public class WebtoonCommentService {
         } catch (Exception e) {
             return null; // 인증되지 않은 경우 null 반환
         }
+    }
+
+    private CommentResponseDTO convertToDto(WebtoonComment comment) {
+        return CommentResponseDTO.builder()
+                .id(comment.getId())
+                .content(comment.getContent())
+                .nickname(comment.getAppUser().getNickname())
+                .createdDate(comment.getCreatedDate())
+                .likeCount(likeRepository.countByWebtoonCommentAndIsLikedTrue(comment))
+                .isLiked(false) // 초기값 설정
+                .build();
     }
 
     // ========= 테스트용 메서드 =========

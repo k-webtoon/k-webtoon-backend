@@ -102,8 +102,8 @@ VALUES
 (28, 28, False, True, True, 4),
 (29, 29, True, False, False, 2),
 (1, 30, False, True, True, 5);
-
-INSERT INTO public.recommend_webtoon
+ommend_webtoon
+INSERT INTO public.rec
 (is_recommended, create_date_time, user_index_id, webtoon_id)
 VALUES
 (True, '2025-04-07 16:55:00', 1, 257),

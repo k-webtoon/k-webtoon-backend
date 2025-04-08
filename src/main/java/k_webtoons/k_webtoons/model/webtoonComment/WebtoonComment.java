@@ -1,19 +1,25 @@
 package k_webtoons.k_webtoons.model.webtoonComment;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
@@ -26,10 +32,13 @@ public class WebtoonComment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private AppUser appUser;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "webtoon_id", nullable = false)
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
     private Webtoon webtoon;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -62,4 +71,13 @@ public class WebtoonComment {
         this.deletedDateTime = LocalDateTime.now(); // 삭제 시 삭제 시간 기록
     }
 
+    @Override
+    public String toString() {
+        return "WebtoonComment{" +
+                "id=" + id +
+                ", content='" + content + '\'' +
+                ", createdDate=" + createdDate +
+                ", deletedDateTime=" + deletedDateTime +
+                '}';
+    }
 }
