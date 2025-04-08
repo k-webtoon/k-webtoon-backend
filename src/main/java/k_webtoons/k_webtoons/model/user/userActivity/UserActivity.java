@@ -5,6 +5,7 @@ import k_webtoons.k_webtoons.model.auth.AppUser;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Type;
 
 @Entity
 @Data
@@ -16,8 +17,8 @@ public class UserActivity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Lob
-    private byte[] profileImage;
+    @Column(length = 500)
+    private String profileImagePath;
 
     private String bio;
 
@@ -28,10 +29,8 @@ public class UserActivity {
     @JoinColumn(name = "app_user_id", nullable = false)
     private AppUser appUser;
 
-
-
-    public UserActivity(byte[] profileImage, String bio, Boolean isProfilePublic, AppUser appUser) {
-        this.profileImage = profileImage;
+    public UserActivity(String profileImagePath, String bio, Boolean isProfilePublic, AppUser appUser) {
+        this.profileImagePath = profileImagePath;
         this.bio = bio;
         this.isProfilePublic = isProfilePublic;
         this.appUser = appUser;

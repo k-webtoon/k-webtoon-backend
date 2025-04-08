@@ -10,5 +10,5 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Long
 
     Optional<UserActivity> findByAppUser(AppUser appUser);
 
-    Optional<UserActivity> findByAppUser_IndexId(Long indexId);
+    Optional<UserActivity> findByAppUser_indexId(Long userId);
 }

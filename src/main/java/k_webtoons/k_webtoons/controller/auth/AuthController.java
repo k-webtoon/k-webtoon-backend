@@ -4,7 +4,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.auth.dto.*;
+import k_webtoons.k_webtoons.security.HeaderValidator;
 import k_webtoons.k_webtoons.security.JwtUtil;
 import k_webtoons.k_webtoons.security.AppUserDetails;
 import k_webtoons.k_webtoons.service.auth.AuthService;
@@ -27,6 +29,7 @@ public class AuthController {
     private final AuthService authService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final HeaderValidator headerValidator;
 
     // 회원가입
     @Operation(
@@ -107,7 +110,7 @@ public class AuthController {
         return ResponseEntity.ok(email);
     }
 
-    // 비밀번호 변경
+    // 보안질문으로 비밀번호 변경
     @Operation(
             summary = "비밀번호 변경 API",
             description = "이메일과 함께 전화번호 및 보안 질문/답변을 제공하여 비밀번호를 변경합니다.",
@@ -123,5 +126,30 @@ public class AuthController {
     public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
         authService.changePassword(request);
         return ResponseEntity.ok("Password changed successfully");
+    }
+
+    @Operation(
+            summary = "현재 비밀번호로 변경 API",
+            description = "현재 비밀번호 확인 후 새로운 비밀번호로 변경합니다.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "비밀번호 변경 성공",
+                            content = @Content(schema = @Schema(implementation = String.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "비밀번호 불일치 오류",
+                            content = @Content(schema = @Schema(implementation = String.class))
+                    )
+            }
+    )
+    @PostMapping("/new-password")
+    public ResponseEntity<String> changePasswordWithCurrent(
+            @RequestBody ChangePasswordWithCurrentRequest request
+    ) {
+        AppUser user = headerValidator.getAuthenticatedUser();
+        authService.changePasswordWithCurrent(user, request);
+        return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
     }
 }
