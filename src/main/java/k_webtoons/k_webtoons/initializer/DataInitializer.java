@@ -34,7 +34,7 @@ public class DataInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         // 1. 웹툰 CSV 데이터 먼저 로드
         if (webtoonRepository.count() == 0) {
-            String webtoonCsvFile = "C:/Dataset_add_cluster_character.csv";
+            String webtoonCsvFile = "D:/Dataset_add_cluster_character.csv";
             logger.info("웹툰 데이터를 CSV 파일에서 DB로 가져오는 중...");
             webtoonCsvImportService.saveWebtoonsFromCSV(webtoonCsvFile);
             logger.info("✅ 웹툰 데이터 초기화 완료");
@@ -45,7 +45,7 @@ public class DataInitializer implements ApplicationRunner {
 
         // 3. 유사도 데이터 로드 (기존 코드 유지)
         if (cosineTableRepository.count() == 0) {
-            String similarityCsvFile = "C:/cosine_sim_top10_tabel.csv";
+            String similarityCsvFile = "D:/cosine_sim_top10_tabel.csv";
             logger.info("유사도 데이터를 CSV 파일에서 DB로 가져오는 중...");
             webtoonCsvImportService.saveWebtoonsFromCSV_2(similarityCsvFile);
             logger.info("✅ 유사도 데이터 초기화 완료");
