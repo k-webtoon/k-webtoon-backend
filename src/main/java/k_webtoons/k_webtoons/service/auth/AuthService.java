@@ -64,6 +64,14 @@ public class AuthService {
                 .orElseThrow(() -> new CustomException("해당 전화번호를 사용하는 사용자가 없습니다.", "PHONE_NUMBER_NOT_FOUND"));
     }
 
+    // 이메일로 보안질문 검색
+    @Transactional(readOnly = true)
+    public String getSecurityQuestionByEmail(VerifyEmailDTO request) {
+        return userRepository.findByUserEmail(request.email())
+                .map(AppUser::getSecurityQuestion)
+                .orElseThrow(() -> new CustomException("해당 이메일을 사용하는 사용자가 없습니다.", "EMAIL_NOT_FOUND"));
+    }
+
     // 보안답변으로 이메일 찾기
     @Transactional(readOnly = true)
     public String findEmailBySecurityAnswer(SecurityQuestionRequest request) {
