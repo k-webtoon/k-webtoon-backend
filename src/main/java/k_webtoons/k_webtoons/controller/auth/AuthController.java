@@ -46,7 +46,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // 로그인 주석추가
+    // 로그인
     @Operation(
             summary = "로그인 API",
             description = "사용자가 이메일과 비밀번호를 제공하여 로그인하고 JWT 토큰을 반환받습니다.",
@@ -86,6 +86,24 @@ public class AuthController {
     @PostMapping("/verifyPhoneNumber")
     public ResponseEntity<String> verifyPhoneNumber(@RequestBody VerifyPhoneNumberDTO request) {
         String securityQuestion = authService.getSecurityQuestionByPhoneNumber(request);
+        return ResponseEntity.ok(securityQuestion);
+    }
+
+    // 이메일 인증
+    @Operation(
+            summary = "이메일 인증 API",
+            description = "이메일을 인증하고 보안 질문을 반환합니다.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "이메일 인증 성공 및 보안 질문 반환",
+                            content = @Content(schema = @Schema(implementation = String.class))
+                    )
+            }
+    )
+    @PostMapping("/verifyEmail")
+    public ResponseEntity<String> verifyEmail(@RequestBody VerifyEmailDTO request) {
+        String securityQuestion = authService.getSecurityQuestionByEmail(request);
         return ResponseEntity.ok(securityQuestion);
     }
 
