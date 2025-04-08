@@ -16,21 +16,50 @@ public interface WebtoonCommentRepository extends JpaRepository<WebtoonComment ,
 
     Optional<WebtoonComment> findByIdAndDeletedDateTimeIsNull(Long id);
 
-    @EntityGraph(attributePaths = {"appUser", "webtoon"})
+    @EntityGraph(attributePaths = {"appUser"})
     @Query("SELECT wc FROM WebtoonComment wc WHERE wc.webtoon.id = :webtoonId AND wc.deletedDateTime IS NULL")
     Page<WebtoonComment> findByWebtoonIdAndDeletedDateTimeIsNull(@Param("webtoonId") Long webtoonId, Pageable pageable);
 
     @Query("SELECT wc FROM WebtoonComment wc WHERE wc.appUser.indexId = :userId AND wc.deletedDateTime IS NULL")
     List<WebtoonComment> findByUserIdAndDeletedDateTimeIsNull(@Param("userId") Long userId);
 
-    @Query(value = """
-    SELECT c.* FROM webtoon_comment c
-    LEFT JOIN comment_like l ON c.id = l.comment_id AND l.is_liked = true
-    WHERE c.webtoon_id = :webtoonId
-      AND c.deleted_date_time IS NULL
-    GROUP BY c.id
-    ORDER BY COUNT(l.id) DESC
-    LIMIT 3
-    """, nativeQuery = true)
-    List<WebtoonComment> findTop3BestComments(@Param("webtoonId") Long webtoonId);
+    @EntityGraph(attributePaths = {"appUser"})
+    @Query("""
+    SELECT
+        wc.id AS commentId,
+        wc.content AS content,
+        au.nickname AS nickname,
+        COUNT(l) AS likeCount
+    FROM WebtoonComment wc
+    LEFT JOIN wc.likes l
+    JOIN wc.appUser au
+    WHERE wc.webtoon.id = :webtoonId
+    AND wc.deletedDateTime IS NULL
+    AND (l IS NULL OR l.isLiked = true)
+    GROUP BY wc.id, wc.content, au.nickname
+    ORDER BY likeCount DESC
+""")
+    List<Object[]> findTop3BestCommentsWithLikeCount(@Param("webtoonId") Long webtoonId, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"appUser"})
+    @Query("""
+        SELECT wc, COUNT(l) as likeCount
+        FROM WebtoonComment wc
+        LEFT JOIN wc.likes l
+        WHERE wc.webtoon.id = :webtoonId
+        AND wc.deletedDateTime IS NULL
+        AND l.isLiked = true
+        GROUP BY wc.id
+        ORDER BY likeCount DESC
+    """)
+    Page<Object[]> findBestCommentsWithLikeCount(@Param("webtoonId") Long webtoonId, Pageable pageable);
+
+    @Query("""
+        SELECT wc
+        FROM WebtoonComment wc
+        LEFT JOIN FETCH wc.appUser
+        WHERE wc.appUser.indexId = :userId
+        AND wc.deletedDateTime IS NULL
+    """)
+    List<WebtoonComment> findUserCommentsWithUser(@Param("userId") Long userId);
 }

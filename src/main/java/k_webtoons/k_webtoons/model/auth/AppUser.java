@@ -54,6 +54,7 @@ public class AppUser {
     private Set<UserWebtoonReview> userWebtoonReviews;
 
     @OneToMany(mappedBy = "appUser")
+    @JsonIgnore
     private List<WebtoonComment> webtoonComments;  // 사용자가 작성한 웹툰 댓글 목록
 
     @OneToMany(mappedBy = "appUser")

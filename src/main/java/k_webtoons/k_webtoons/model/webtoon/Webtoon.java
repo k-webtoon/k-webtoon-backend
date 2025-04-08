@@ -1,5 +1,6 @@
 package k_webtoons.k_webtoons.model.webtoon;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
 import lombok.*;
@@ -128,6 +129,7 @@ public class Webtoon {
     private Set<UserWebtoonReview> userWebtoonReviews;
 
     @OneToMany(mappedBy = "webtoon" , fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<WebtoonComment> webtoonComments;
 
     @OneToMany(mappedBy = "webtoon" , fetch = FetchType.LAZY)
