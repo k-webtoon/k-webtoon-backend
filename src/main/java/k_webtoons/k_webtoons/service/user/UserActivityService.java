@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,7 +54,7 @@ public class UserActivityService {
 
         try {
             UserActivity userActivity = new UserActivity();
-            userActivity.setProfileImagePath(dto.profileImagePath()); // ✅ 이미지 경로 저장 방식으로 변경
+            userActivity.setProfileImageUrl(dto.profileImagePath()); // ✅ 이미지 경로 저장 방식으로 변경
             userActivity.setBio(dto.bio());
             userActivity.setIsProfilePublic(dto.isProfilePublic());
             userActivity.setAppUser(appUser);
@@ -73,25 +72,21 @@ public class UserActivityService {
         UserActivity activity = getUserActivity(authenticatedUser);
 
         try {
-            // 파일명 해시화 (중복 방지)
             String hashedFileName = FileUtils.generateHashedFileName(
                     authenticatedUser.getIndexId() +
                             profileImage.getOriginalFilename() +
                             System.currentTimeMillis()
             );
 
-            // 경로 생성
             Path uploadDir = Paths.get(uploadImagePath);
             if (!Files.exists(uploadDir)) {
                 Files.createDirectories(uploadDir);
             }
 
-            // 파일 저장
             Path targetPath = uploadDir.resolve(hashedFileName);
             profileImage.transferTo(targetPath);
 
-            // DB에 절대 경로 저장
-            activity.setProfileImagePath(targetPath.toString());
+            activity.setProfileImageUrl(hashedFileName);
             userActivityRepository.save(activity);
         } catch (IOException | NoSuchAlgorithmException e) {
             throw new CustomException("이미지 처리 실패: " + e.getMessage(), "IMAGE_PROCESS_ERROR");
@@ -125,9 +120,27 @@ public class UserActivityService {
                 .orElseThrow(() -> new CustomException("사용자 활동 정보를 찾을 수 없습니다.", "USER_ACTIVITY_NOT_FOUND"));
 
         return new UserActivityInfoResponse(
-                userActivity.getProfileImagePath(),
+                userActivity.getProfileImageUrl(),
                 userActivity.getBio()
         );
     }
 
+    // 사용자 프로필 이미지만 조회(검증없음)
+    @Transactional(readOnly = true)
+    public String getProfileImageUrl(Long userId) {
+        UserActivity userActivity = userActivityRepository.findByAppUser_indexId(userId)
+                .orElseThrow(() -> new CustomException("사용자 활동 정보 없음", "USER_ACTIVITY_NOT_FOUND"));
+
+        return userActivity.getProfileImageUrl() != null
+                ? "/img/" + userActivity.getProfileImageUrl()
+                : null;
+    }
+
+
+    @Transactional(readOnly = true)
+    public String getBio(Long userId) {
+        return userActivityRepository.findByAppUser_indexId(userId)
+                .map(UserActivity::getBio)
+                .orElseThrow(() -> new CustomException("사용자 활동 정보 없음", "USER_ACTIVITY_NOT_FOUND"));
+    }
 }

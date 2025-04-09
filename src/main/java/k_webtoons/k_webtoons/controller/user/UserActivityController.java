@@ -2,15 +2,20 @@ package k_webtoons.k_webtoons.controller.user;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import k_webtoons.k_webtoons.model.user.userActivity.BioUpdateRequest;
 import k_webtoons.k_webtoons.model.user.userActivity.ProfileVisibilityRequest;
 import k_webtoons.k_webtoons.model.user.userActivity.UserActivityInfoResponse;
 import k_webtoons.k_webtoons.service.user.UserActivityService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Collections;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user-activity")
@@ -72,5 +77,33 @@ public class UserActivityController {
     public ResponseEntity<UserActivityInfoResponse> getUserActivityInfo(@PathVariable Long userId) {
         UserActivityInfoResponse response = userActivityService.getUserActivityInfo(userId);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{userId}/profile-image")
+    public ResponseEntity<Map<String, String>> getProfileImage(
+            @PathVariable Long userId
+    ) {
+        String imageUrl = userActivityService.getProfileImageUrl(userId);
+        return ResponseEntity.ok().body(Collections.singletonMap("profileImageUrl", imageUrl));
+    }
+
+
+    @Operation(
+            summary = "자기소개 조회 API",
+            description = "사용자의 자기소개를 조회합니다.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "조회 성공",
+                            content = @Content(schema = @Schema(type = "string")) // 응답 타입 명시
+                    ),
+                    @ApiResponse(responseCode = "404", description = "사용자 활동 정보 없음", content = @Content)
+            }
+    )
+    @GetMapping(value = "/{userId}/bio", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> getBio(
+            @PathVariable Long userId
+    ) {
+        return ResponseEntity.ok(userActivityService.getBio(userId));
     }
 }
