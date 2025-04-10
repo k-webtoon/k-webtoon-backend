@@ -9,6 +9,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Component
 @RequiredArgsConstructor
 @Order(1) // AdminInitializer를 먼저 실행되도록 설정
@@ -44,7 +46,8 @@ public class AdminInitializer implements CommandLineRunner {
                     "ADMIN",                               // 역할 (어드민)
                     adminPhone,                            // 전화번호
                     securityQuestion,                      // 보안 질문
-                    securityAnswer                         // 보안 답변
+                    securityAnswer,                      // 보안 답변
+                    LocalDateTime.now()
             );
             userRepository.save(adminUser);
             System.out.println("Admin account created: " + adminEmail + " / " + adminPassword);

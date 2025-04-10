@@ -71,7 +71,7 @@ public class AppUser {
     @OneToOne(mappedBy = "appUser" , cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private UserActivity userActivity;
 
-    public AppUser(String userEmail, String userPassword, Integer userAge, String gender, String nickname, String role, String phoneNumber, String securityQuestion, String securityAnswer) {
+    public AppUser(String userEmail, String userPassword, Integer userAge, String gender, String nickname, String role, String phoneNumber, String securityQuestion, String securityAnswer, LocalDateTime createDateTime) {
         this.userEmail = userEmail;
         this.userPassword = userPassword;
         this.userAge = userAge;
@@ -81,6 +81,7 @@ public class AppUser {
         this.phoneNumber = phoneNumber;
         this.securityQuestion = securityQuestion;
         this.securityAnswer = securityAnswer;
+        this.createDateTime =createDateTime;
     }
 
     // Spring Security 권한 처리

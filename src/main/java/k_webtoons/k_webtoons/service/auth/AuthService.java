@@ -12,6 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -39,7 +41,8 @@ public class AuthService {
                     role,
                     dto.phoneNumber(),
                     dto.securityQuestion(),
-                    dto.securityAnswer()
+                    dto.securityAnswer(),
+                    LocalDateTime.now()
             );
 
             AppUser savedAppUser = userRepository.save(newAppUser);
@@ -136,4 +139,26 @@ public class AuthService {
 
         return user;
     }
+
+    @Transactional
+    public void changePasswordWithCurrent(AppUser user, ChangePasswordWithCurrentRequest request) {
+        // 1. 현재 비밀번호 검증
+        if (!passwordEncoder.matches(request.currentPassword(), user.getUserPassword())) {
+            throw new CustomException("현재 비밀번호가 일치하지 않습니다.", "INVALID_CURRENT_PASSWORD");
+        }
+
+        // 2. 새 비밀번호 일치 확인
+        if (!request.newPassword().equals(request.confirmNewPassword())) {
+            throw new CustomException("새 비밀번호와 확인용 비밀번호가 일치하지 않습니다.", "PASSWORD_MISMATCH");
+        }
+
+        // 3. 비밀번호 업데이트
+        try {
+            user.setUserPassword(passwordEncoder.encode(request.newPassword()));
+            userRepository.save(user);
+        } catch (Exception e) {
+            throw new CustomException("비밀번호 변경 중 오류 발생: " + e.getMessage(), "PASSWORD_UPDATE_FAILED");
+        }
+    }
+
 }
