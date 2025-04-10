@@ -2,9 +2,10 @@ package k_webtoons.k_webtoons;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
+import jakarta.annotation.PostConstruct;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
+import java.util.TimeZone;
 
 @OpenAPIDefinition(
         info = @Info(
@@ -15,6 +16,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 )
 @SpringBootApplication
 public class KWebtoonsApplication {
+
+    @PostConstruct
+    public void init() {
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(KWebtoonsApplication.class, args);
