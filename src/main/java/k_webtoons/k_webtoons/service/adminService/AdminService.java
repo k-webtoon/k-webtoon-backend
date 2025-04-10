@@ -21,19 +21,22 @@ public class AdminService {
         this.commentRepository = commentRepository;
     }
 
+    // 전체 사용자 수
     public long getTotalUsers() {
         return userRepository.count();
     }
 
+    // 전체 웹툰 수
     public long getTotalWebtoons() {
         return webtoonRepository.count();
     }
 
+    // 전체 댓글 수
     public long getTotalComments() {
         return commentRepository.count();
     }
 
-    // 🔽 추가: 대시보드 요약 DTO 통합 반환
+    // 요약
     public DashboardSummaryDto getDashboardSummary() {
         return new DashboardSummaryDto(
                 getTotalUsers(),
@@ -41,4 +44,9 @@ public class AdminService {
                 getTotalComments()
         );
     }
+
+
+
+
+
 }

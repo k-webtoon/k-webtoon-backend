@@ -5,6 +5,7 @@ import k_webtoons.k_webtoons.model.user.userActivity.UserActivity;
 import k_webtoons.k_webtoons.model.webtoon.RecommendWebtoon;
 import k_webtoons.k_webtoons.model.webtoon.UserWebtoonReview;
 import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
+import k_webtoons.k_webtoons.security.AccountStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Getter
 @Setter
 @NoArgsConstructor
+@Table(name = "app_user")
 public class AppUser {
 
     @Id
@@ -33,13 +35,16 @@ public class AppUser {
     @Column(nullable = false, unique = true)
     private String userEmail;
 
-    @JsonIgnore  // ✅ 민감 정보 숨기기
+    @JsonIgnore  // 민감 정보 숨기기
     @Column(nullable = false)
     private String userPassword;
 
     private LocalDateTime createDateTime;
 
     private LocalDateTime deletedDateTime;
+
+    @Column(name = "suspended_at")
+    private LocalDateTime suspendedAt; // 정지 시작 시간
 
     private Integer userAge;
 
@@ -50,6 +55,9 @@ public class AppUser {
     @Column(nullable = false)
     private String role;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AccountStatus accountStatus = AccountStatus.ACTIVE;
     @OneToMany(mappedBy = "appUser")
     private Set<UserWebtoonReview> userWebtoonReviews;
 
@@ -82,6 +90,7 @@ public class AppUser {
         this.securityQuestion = securityQuestion;
         this.securityAnswer = securityAnswer;
         this.createDateTime =createDateTime;
+        this.accountStatus = AccountStatus.ACTIVE;
     }
 
     // Spring Security 권한 처리

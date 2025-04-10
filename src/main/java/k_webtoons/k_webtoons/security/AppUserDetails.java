@@ -34,4 +34,24 @@ public class AppUserDetails implements UserDetails {
     public String getRole() {
         return user.getRole();
     }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return user.getAccountStatus() != AccountStatus.SUSPENDED; // 정지 상태인지 확인
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return user.getAccountStatus() == AccountStatus.ACTIVE; // 활성 상태인지 확인
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // 만료 관련 로직이 필요하면 추가 가능
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true; // 자격 증명 만료 관련 로직이 필요하면 추가 가능
+    }
 }
