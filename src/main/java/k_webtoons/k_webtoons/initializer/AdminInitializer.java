@@ -2,6 +2,7 @@ package k_webtoons.k_webtoons.initializer;
 
 import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.repository.user.UserRepository;
+import k_webtoons.k_webtoons.security.AccountStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -49,6 +50,9 @@ public class AdminInitializer implements CommandLineRunner {
                     securityAnswer,                      // 보안 답변
                     LocalDateTime.now()
             );
+
+
+            adminUser.setAccountStatus(AccountStatus.ACTIVE);
             userRepository.save(adminUser);
             System.out.println("Admin account created: " + adminEmail + " / " + adminPassword);
         }
