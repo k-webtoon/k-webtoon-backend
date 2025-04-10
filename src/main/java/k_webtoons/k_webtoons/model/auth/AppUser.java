@@ -58,6 +58,7 @@ public class AppUser {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AccountStatus accountStatus = AccountStatus.ACTIVE;
+
     @OneToMany(mappedBy = "appUser")
     private Set<UserWebtoonReview> userWebtoonReviews;
 

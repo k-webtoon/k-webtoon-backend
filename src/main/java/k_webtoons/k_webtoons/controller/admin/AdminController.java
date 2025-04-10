@@ -2,13 +2,13 @@ package k_webtoons.k_webtoons.controller.admin;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import k_webtoons.k_webtoons.model.admin.FindAllUserByAdminDTO;
+import k_webtoons.k_webtoons.model.admin.UserDetailByAdminDTO;
 import k_webtoons.k_webtoons.service.adminService.AdminService;
 import k_webtoons.k_webtoons.model.admin.DashboardSummaryDto;
-import k_webtoons.k_webtoons.model.webtoon.Webtoon;
-import k_webtoons.k_webtoons.model.auth.AppUser;
-import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -49,16 +49,24 @@ public class AdminController {
         long totalComments = adminService.getTotalComments();
         return ResponseEntity.ok(totalComments);
     }
-//
-//    @GetMapping("/users")
-//    @PreAuthorize("hasRole('ADMIN')")
-//    @Operation(summary = "유저 목록 조회", description = "관리자 권한으로 전체 유저 목록을 조회합니다.")
-//    public String getAllUsers() {
-//        return "모든 유저 목록";
-//    }
-//
+
+    @GetMapping("/users")
+    public ResponseEntity<Page<FindAllUserByAdminDTO>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<FindAllUserByAdminDTO> users = adminService.getAllUsers(pageRequest);
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/user/{id}")
+    public ResponseEntity<UserDetailByAdminDTO> getUserById(@PathVariable Long id) {
+        UserDetailByAdminDTO dto = adminService.getUserDetails(id);
+        return ResponseEntity.ok(dto);
+    }
+
 //    @GetMapping("/webtoon")
-//    @PreAuthorize("hasRole('ADMIN')")
+//
 //    @Operation(summary = "웹툰 목록 조회", description = "관리자 권한으로 전체 웹툰 목록을 조회합니다.")
 //    public String getAllWebtoon() {
 //        return "모든 웹툰 목록";
