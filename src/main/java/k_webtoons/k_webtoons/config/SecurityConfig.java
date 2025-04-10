@@ -54,8 +54,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/**").permitAll()
                         .requestMatchers("/api/webtoon/like/**").permitAll()
                         .requestMatchers("/api/connector/**").permitAll()
-                        .requestMatchers("/api/user-activity").authenticated()
-                        .requestMatchers("/api/logs/**").permitAll() // ✅ 로그 수집 API 허용
+                        .requestMatchers("/api/admin/**").permitAll()
+                        .requestMatchers("/api/user-activity/**").permitAll()
+                        .requestMatchers("/img/**").permitAll()
+                        .requestMatchers("/api/logs/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

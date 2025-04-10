@@ -16,8 +16,8 @@ public class UserActivity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Lob
-    private byte[] profileImage;
+    @Column(length = 500)
+    private String profileImageUrl;
 
     private String bio;
 
@@ -28,10 +28,8 @@ public class UserActivity {
     @JoinColumn(name = "app_user_id", nullable = false)
     private AppUser appUser;
 
-
-
-    public UserActivity(byte[] profileImage, String bio, Boolean isProfilePublic, AppUser appUser) {
-        this.profileImage = profileImage;
+    public UserActivity(String profileImageUrl, String bio, Boolean isProfilePublic, AppUser appUser) {
+        this.profileImageUrl = profileImageUrl;
         this.bio = bio;
         this.isProfilePublic = isProfilePublic;
         this.appUser = appUser;
