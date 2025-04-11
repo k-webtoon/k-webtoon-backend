@@ -8,12 +8,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-@Transactional // ✅ 여기가 핵심!
 public class RecommendInitService {
 
-    private final RecommendInitRepository repository;
+    private final RecommendInitRepository recommendInitRepository;
 
+    @Transactional
     public void saveInitialRecommendations(Long userId, RecommendInitRequestDTO dto) {
-        repository.insertInitialRecommendations(userId, dto.getWebtoonIds());
+        recommendInitRepository.insertInitialRecommendations(userId, dto.webtoonIds());
     }
 }

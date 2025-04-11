@@ -52,18 +52,6 @@ public class JwtUtil {
         return (String) parseToken(token).get("role");
     }
 
-    public Long extractId_init(String token) {
-        Object idObj = parseToken(token).get("id");
-
-        if (idObj instanceof Integer) {
-            return ((Integer) idObj).longValue(); // ✅ 안전하게 변환
-        } else if (idObj instanceof Long) {
-            return (Long) idObj;
-        } else {
-            throw new IllegalArgumentException("잘못된 ID 타입: " + idObj.getClass());
-        }
-    }
-
     // 사용자 ID 추출
     public Long extractId(String token) {
         return (Long) parseToken(token).get("id"); // 페이로드에서 'id' 추출
