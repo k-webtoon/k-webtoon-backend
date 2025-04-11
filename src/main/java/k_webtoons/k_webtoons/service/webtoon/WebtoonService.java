@@ -5,6 +5,7 @@ import k_webtoons.k_webtoons.model.webtoon.Webtoon;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonDetailResponse;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -102,23 +103,17 @@ public class WebtoonService {
 
     // 웹툰 ID로 상세 조회
     public WebtoonDetailResponse getWebtoonDetail(Long id) {
-        Webtoon webtoon = webtoonRepository.findById(id)
-                .orElseThrow(() -> new WebtoonNotFoundException("해당 ID의 웹툰이 존재하지 않습니다."));
+        // 1. 기본 정보만 조회 (컬렉션 X)
+        Webtoon webtoon = webtoonRepository.findByIdAndIsPublicTrue(id)
+                .orElseThrow(() -> new WebtoonNotFoundException("웹툰을 찾을 수 없습니다"));
 
-        // Lazy Loading 필드 명시적 초기화
-        if (webtoon.getGenre() != null) {
-            webtoon.getGenre().size(); // Hibernate가 데이터를 로드하도록 트리거
-        }
-        if (webtoon.getTags() != null) {
-            webtoon.getTags().size();
-        }
-        if (webtoon.getUserWebtoonReviews() != null) {
-            webtoon.getUserWebtoonReviews().size();
-        }
-        if (webtoon.getWebtoonComments() != null) {
-            webtoon.getWebtoonComments().size();
-        }
+        // 2. 컬렉션 별도 초기화 (개별 쿼리 실행)
+        Hibernate.initialize(webtoon.getGenre()); // SELECT genre WHERE webtoon_id=?
+        Hibernate.initialize(webtoon.getTags());  // SELECT tags WHERE webtoon_id=?
+        Hibernate.initialize(webtoon.getUserWebtoonReviews());
+        Hibernate.initialize(webtoon.getWebtoonComments());
 
+        // 3. DTO 변환
         return new WebtoonDetailResponse(
                 webtoon.getId(),
                 webtoon.getTitleName(),
@@ -135,8 +130,8 @@ public class WebtoonService {
                 toBool(webtoon.getOsmuPlay()),
                 webtoon.getFinish(),
                 webtoon.getAdult(),
-                new ArrayList<>(webtoon.getGenre()),
-                new ArrayList<>(webtoon.getTags()),
+                webtoon.getGenre(), // List 유지
+                webtoon.getTags(),  // List 유지
                 webtoon.getArtistId()
         );
     }
