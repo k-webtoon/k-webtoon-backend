@@ -94,6 +94,7 @@ public class WebtoonCsvImportService {
                         .synopVec(parseVector(nextLine[31]))
                         .link(nextLine[32])
                         .character(parseCsvList(nextLine.length > 33 ? nextLine[33] : ""))
+                        .isPublic(true)
                         .build();
 
                 webtoonRepository.save(webtoon);

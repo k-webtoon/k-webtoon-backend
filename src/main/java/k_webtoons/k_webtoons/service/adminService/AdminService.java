@@ -1,9 +1,12 @@
 package k_webtoons.k_webtoons.service.adminService;
 
 import k_webtoons.k_webtoons.exception.CustomException;
+import k_webtoons.k_webtoons.exception.WebtoonNotFoundException;
 import k_webtoons.k_webtoons.model.admin.FindAllUserByAdminDTO;
 import k_webtoons.k_webtoons.model.admin.UserDetailByAdminDTO;
 import k_webtoons.k_webtoons.model.auth.AppUser;
+import k_webtoons.k_webtoons.model.webtoon.Webtoon;
+import k_webtoons.k_webtoons.security.HeaderValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +16,7 @@ import k_webtoons.k_webtoons.model.admin.DashboardSummaryDto;
 import k_webtoons.k_webtoons.repository.user.UserRepository;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
 import k_webtoons.k_webtoons.repository.webtoonComment.WebtoonCommentRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -21,6 +25,7 @@ public class AdminService {
     private final UserRepository userRepository;
     private final WebtoonRepository webtoonRepository;
     private final WebtoonCommentRepository commentRepository;
+    private final HeaderValidator headerValidator;
 
     // 전체 사용자 수
     public long getTotalUsers() {
@@ -73,11 +78,23 @@ public class AdminService {
         );
     }
 
+    //웹툰 비공개 처리
 
+    @Transactional
+    public void setWebtoonPrivate(Long webtoonId) {
+        // 1. 관리자 권한 확인
+        AppUser admin = headerValidator.getAuthenticatedUser();
+        if (!"ADMIN".equals(admin.getRole())) {
+            throw new CustomException("관리자 권한이 없습니다", "ADMIN_ACCESS_DENIED");
+        }
 
+        // 2. 웹툰 존재 여부 확인
+        Webtoon webtoon = webtoonRepository.findById(webtoonId)
+                .orElseThrow(() -> new WebtoonNotFoundException("웹툰을 찾을 수 없습니다"));
 
-
-
+        // 3. 비공개 처리
+        webtoon.setIsPublic(false);
+    }
 
 
 }

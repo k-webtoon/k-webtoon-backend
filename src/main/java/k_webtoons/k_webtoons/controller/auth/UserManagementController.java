@@ -5,9 +5,11 @@ import k_webtoons.k_webtoons.model.auth.dto.AccountStatusRequest;
 import k_webtoons.k_webtoons.service.auth.UserManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@PreAuthorize("hasRole('ADMIN')")
 @RequestMapping("/api/user_ma")
 @RequiredArgsConstructor
 public class UserManagementController {
