@@ -69,8 +69,9 @@ public class AuthController {
 
         AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
         String role = userDetails.getRole();
+        Long userId = userDetails.getUser().getIndexId();
 
-        String token = jwtUtil.generateToken(dto.userEmail(), role);
+        String token = jwtUtil.generateToken(dto.userEmail(), role, userId);
         return ResponseEntity.ok(token);
     }
 
