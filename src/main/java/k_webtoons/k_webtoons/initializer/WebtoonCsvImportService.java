@@ -106,7 +106,7 @@ public class WebtoonCsvImportService {
     private CosineSimTableRepository cosineTableRepository;
 
     public void saveWebtoonsFromCSV_2(String filePath) {
-        int batchSize = 2000; // 배치 크기 설정
+        int batchSize = 10000; // 배치 크기 설정
         List<CosineSimTable> batchList = new ArrayList<>();
         long totalCount = 0; // 총 삽입된 데이터 개수
 
