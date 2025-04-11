@@ -1,6 +1,7 @@
 package k_webtoons.k_webtoons.controller.user;
 
 import jakarta.servlet.http.HttpServletRequest;
+import k_webtoons.k_webtoons.security.HeaderValidator;
 import k_webtoons.k_webtoons.security.JwtUtil;
 import k_webtoons.k_webtoons.service.user.RecommendInitService;
 import k_webtoons.k_webtoons.model.user.RecommendInitRequestDTO;
@@ -13,21 +14,17 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class RecommendInitController {
 
-    private final JwtUtil jwtUtil;
-    private final RecommendInitService service;
+    private final RecommendInitService recommendInitService;
+    private final HeaderValidator headerValidator;
 
     @PostMapping("/init")
-    public ResponseEntity<?> saveInitial(@RequestBody RecommendInitRequestDTO dto,
-                                         HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(401).body("토큰 없음");
-        }
+    public ResponseEntity<String> saveInitial(
+            @RequestBody RecommendInitRequestDTO dto
+    ) {
+        // HeaderValidator를 통한 사용자 인증
+        Long userId = headerValidator.getAuthenticatedUser().getIndexId();
 
-        String token = authHeader.substring(7);
-        Long userId = jwtUtil.extractId_init(token);
-
-        service.saveInitialRecommendations(userId, dto);
+        recommendInitService.saveInitialRecommendations(userId, dto);
         return ResponseEntity.ok("초기 추천 저장 완료");
     }
 }

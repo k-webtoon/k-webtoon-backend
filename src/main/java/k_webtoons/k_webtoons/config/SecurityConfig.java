@@ -54,7 +54,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/**").permitAll()
                         .requestMatchers("/api/webtoon/like/**").permitAll()
                         .requestMatchers("/api/connector/**").permitAll()
-                        .requestMatchers("/api/admin/**").permitAll()
+                        .requestMatchers("/api/recommend/**").authenticated()
                         .requestMatchers("/api/user-activity/**").permitAll()
                         .requestMatchers("/img/**").permitAll()
                         .requestMatchers("/api/user_ma/**").hasRole("ADMIN")

@@ -1,27 +1,24 @@
 package k_webtoons.k_webtoons.repository.user;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import org.springframework.stereotype.Repository;
+import k_webtoons.k_webtoons.model.webtoon.UserWebtoonReview;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-@Repository
-public class RecommendInitRepository {
+public interface RecommendInitRepository extends JpaRepository<UserWebtoonReview, Long> {
 
-    @PersistenceContext
-    private EntityManager em;
-
-    public void insertInitialRecommendations(Long userId, List<Long> webtoonIds) {
-        for (Long webtoonId : webtoonIds) {
-            em.createNativeQuery("""
-                INSERT INTO public.user_webtoon_review 
-                (user_index_id, webtoon_id, is_favorite, is_liked, is_watched, rating)
-                VALUES (:userId, :webtoonId, true, true, false, null)
-            """)
-                    .setParameter("userId", userId)
-                    .setParameter("webtoonId", webtoonId)
-                    .executeUpdate();
-        }
-    }
+    @Modifying
+    @Query(value = """
+        INSERT INTO user_webtoon_review 
+        (user_index_id, webtoon_id, is_favorite, is_liked, is_watched, rating)
+        SELECT :userId, webtoon_id, true, true, false, null 
+        FROM unnest(:webtoonIds) AS webtoon_id
+        """, nativeQuery = true)
+    void insertInitialRecommendations(
+            @Param("userId") Long userId,
+            @Param("webtoonIds") List<Long> webtoonIds
+    );
 }
