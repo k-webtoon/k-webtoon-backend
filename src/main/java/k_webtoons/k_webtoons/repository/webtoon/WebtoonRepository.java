@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface WebtoonRepository extends JpaRepository<Webtoon, Long> {
@@ -64,6 +65,10 @@ public interface WebtoonRepository extends JpaRepository<Webtoon, Long> {
     @Query("SELECT w FROM Webtoon w WHERE w.isPublic = true ORDER BY w.favoriteCount DESC")
     Page<Webtoon> findTopWebtoons(Pageable pageable);
 
+    @Query("SELECT w.genre FROM Webtoon w WHERE w.id = :id")
+    List<String> findGenreByWebtoonId(@Param("id") Long id);
 
+    @Query("SELECT w.tags FROM Webtoon w WHERE w.id = :id")
+    List<String> findTagsByWebtoonId(@Param("id") Long id);
 
 }

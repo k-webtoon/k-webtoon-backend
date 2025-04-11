@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -103,17 +105,13 @@ public class WebtoonService {
 
     // 웹툰 ID로 상세 조회
     public WebtoonDetailResponse getWebtoonDetail(Long id) {
-        // 1. 기본 정보만 조회 (컬렉션 X)
         Webtoon webtoon = webtoonRepository.findByIdAndIsPublicTrue(id)
                 .orElseThrow(() -> new WebtoonNotFoundException("웹툰을 찾을 수 없습니다"));
 
-        // 2. 컬렉션 별도 초기화 (개별 쿼리 실행)
-        Hibernate.initialize(webtoon.getGenre()); // SELECT genre WHERE webtoon_id=?
-        Hibernate.initialize(webtoon.getTags());  // SELECT tags WHERE webtoon_id=?
-        Hibernate.initialize(webtoon.getUserWebtoonReviews());
-        Hibernate.initialize(webtoon.getWebtoonComments());
+        // 별도 쿼리로 컬렉션 데이터 로드
+        List<String> genre = webtoonRepository.findGenreByWebtoonId(id);
+        List<String> tags = webtoonRepository.findTagsByWebtoonId(id);
 
-        // 3. DTO 변환
         return new WebtoonDetailResponse(
                 webtoon.getId(),
                 webtoon.getTitleName(),
@@ -130,8 +128,8 @@ public class WebtoonService {
                 toBool(webtoon.getOsmuPlay()),
                 webtoon.getFinish(),
                 webtoon.getAdult(),
-                webtoon.getGenre(), // List 유지
-                webtoon.getTags(),  // List 유지
+                genre,
+                tags,
                 webtoon.getArtistId()
         );
     }
