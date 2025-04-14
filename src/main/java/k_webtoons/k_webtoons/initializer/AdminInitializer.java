@@ -48,7 +48,8 @@ public class AdminInitializer implements CommandLineRunner {
                     adminPhone,                            // 전화번호
                     securityQuestion,                      // 보안 질문
                     securityAnswer,                      // 보안 답변
-                    LocalDateTime.now()
+                    LocalDateTime.now(),
+                    "LOCAL"
             );
 
 

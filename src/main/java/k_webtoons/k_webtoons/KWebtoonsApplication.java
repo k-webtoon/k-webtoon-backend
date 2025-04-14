@@ -1,5 +1,6 @@
 package k_webtoons.k_webtoons;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import jakarta.annotation.PostConstruct;
@@ -23,7 +24,14 @@ public class KWebtoonsApplication {
     }
 
     public static void main(String[] args) {
+        Dotenv dotenv = Dotenv.configure()
+                        .directory("./src/main/resources")
+                                .load();
+
+        dotenv.entries().forEach(entry -> {
+            System.setProperty(entry.getKey(), entry.getValue());
+        });
+
         SpringApplication.run(KWebtoonsApplication.class, args);
     }
-
 }

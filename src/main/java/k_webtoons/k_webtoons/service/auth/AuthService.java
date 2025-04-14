@@ -42,7 +42,8 @@ public class AuthService {
                     dto.phoneNumber(),
                     dto.securityQuestion(),
                     dto.securityAnswer(),
-                    LocalDateTime.now()
+                    LocalDateTime.now(),
+                    "LOCAL"
             );
 
             AppUser savedAppUser = userRepository.save(newAppUser);
