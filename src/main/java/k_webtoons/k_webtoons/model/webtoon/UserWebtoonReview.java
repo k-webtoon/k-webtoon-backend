@@ -3,12 +3,14 @@ package k_webtoons.k_webtoons.model.webtoon;
 import jakarta.persistence.*;
 import k_webtoons.k_webtoons.model.auth.AppUser;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
 @Data
 @Entity
+@Builder
 @Table(name = "user_webtoon_review")
 @AllArgsConstructor
 @NoArgsConstructor

@@ -23,18 +23,28 @@ public class WebtoonReviewService {
     private final AuthService authService;
     private final WebtoonService webtoonService;
 
-    // 좋아요 토글
+    // 좋아요 토글 (true → false → null 순환)
     @Transactional
     public LikeDTO toggleLike(Long webtoonId) {
         AppUser user = authService.getAuthenticatedUser();
         Webtoon webtoon = webtoonService.getWebtoonById(webtoonId);
 
         UserWebtoonReview review = reviewRepository.findByAppUserAndWebtoon(user, webtoon)
-                .orElseGet(() -> new UserWebtoonReview(user, webtoon, false));
+                .orElseGet(() -> UserWebtoonReview.builder()
+                        .appUser(user)
+                        .webtoon(webtoon)
+                        .build());
 
-        review.setIsLiked(!review.getIsLiked());
+        // 상태 순환 로직
+        if (review.getIsLiked() == null) {
+            review.setIsLiked(true);
+        } else if (review.getIsLiked()) {
+            review.setIsLiked(false);
+        } else {
+            review.setIsLiked(null);
+        }
+
         reviewRepository.save(review);
-
         return new LikeDTO(webtoon.getId(), review.getIsLiked());
     }
 
@@ -79,20 +89,32 @@ public class WebtoonReviewService {
         Webtoon webtoon = webtoonService.getWebtoonById(webtoonId);
 
         UserWebtoonReview review = reviewRepository.findByAppUserAndWebtoon(user, webtoon)
-                .orElseGet(() -> new UserWebtoonReview(user, webtoon, false));
+                .orElseGet(() -> UserWebtoonReview.builder()
+                        .appUser(user)
+                        .webtoon(webtoon)
+                        .build());
 
-        review.setIsWatched(!review.getIsWatched());
+        // 상태 순환 로직
+        if (review.getIsWatched() == null) {
+            review.setIsWatched(true);
+        } else if (review.getIsWatched()) {
+            review.setIsWatched(false);
+        } else {
+            review.setIsWatched(null);
+        }
+
         reviewRepository.save(review);
-
         return new WatchedDTO(webtoon.getId(), review.getIsWatched());
     }
 
-    // 사용자별 좋아요 목록 조회
+    // 사용자별 좋아요 목록 조회 (모든 리뷰 반환)
     @Transactional(readOnly = true)
     public List<LikeDTO> getLikes(Long userId) {
         AppUser user = authService.getUserByUserId(userId);
-        return reviewRepository.findByAppUserAndIsLikedTrue(user).stream()
-                .map(review -> new LikeDTO(review.getWebtoon().getId(), true))
+
+        // 모든 리뷰를 가져오고, 각 리뷰의 isLiked 값을 포함
+        return reviewRepository.findByAppUser(user).stream()
+                .map(review -> new LikeDTO(review.getWebtoon().getId(), review.getIsLiked()))
                 .collect(Collectors.toList());
     }
 
