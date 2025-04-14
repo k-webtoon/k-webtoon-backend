@@ -1,6 +1,8 @@
 package k_webtoons.k_webtoons.config;
 
 import k_webtoons.k_webtoons.security.JwtAuthenticationFilter;
+import k_webtoons.k_webtoons.security.oauth2.OAuth2LoginSuccessHandler;
+import k_webtoons.k_webtoons.service.auth.oauth2.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,40 +30,44 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 활성화 (추가)
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("api/webtoons/**").permitAll()
-                        .requestMatchers("/api/follow/**").permitAll()
                         .requestMatchers(
+                                "/api/auth/**",
+                                "/api/oauth2/**",
+                                "/api/webtoons/**",
+                                "/api/follow/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
-                                "/swagger-resources/**"
+                                "/swagger-resources/**",
+                                "/api/user/**",
+                                "/api/webtoon/like/**",
+                                "/api/connector/**",
+                                "/api/user-activity/**",
+                                "/img/**",
+                                "/api/logs/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll() // GET은 모두 허용
-                        .requestMatchers(HttpMethod.POST, "/api/comments/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/comments/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/comments/**").authenticated()
-                        .requestMatchers("/api/user/me").authenticated()
-                        .requestMatchers("/api/user/**").permitAll()
-                        .requestMatchers("/api/webtoon/like/**").permitAll()
-                        .requestMatchers("/api/connector/**").permitAll()
-                        .requestMatchers("/api/recommend/**").authenticated()
-                        .requestMatchers("/api/user-activity/**").permitAll()
-                        .requestMatchers("/img/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
                         .requestMatchers("/api/user_ma/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/logs/**").permitAll()
-                        .anyRequest().authenticated())
+                        .anyRequest().authenticated()
+                )
+                .oauth2Login(oauth -> oauth
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .successHandler(oAuth2LoginSuccessHandler)
+                )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
@@ -77,11 +83,6 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config); // 모든 경로에 적용
         return source;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
     @Bean

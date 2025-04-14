@@ -77,10 +77,12 @@ public class AppUser {
     @JsonIgnore
     private String securityAnswer;
 
+    private String provider;
+
     @OneToOne(mappedBy = "appUser" , cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private UserActivity userActivity;
 
-    public AppUser(String userEmail, String userPassword, Integer userAge, String gender, String nickname, String role, String phoneNumber, String securityQuestion, String securityAnswer, LocalDateTime createDateTime) {
+    public AppUser(String userEmail, String userPassword, Integer userAge, String gender, String nickname, String role, String phoneNumber, String securityQuestion, String securityAnswer, LocalDateTime createDateTime, String provider) {
         this.userEmail = userEmail;
         this.userPassword = userPassword;
         this.userAge = userAge;
@@ -92,6 +94,7 @@ public class AppUser {
         this.securityAnswer = securityAnswer;
         this.createDateTime =createDateTime;
         this.accountStatus = AccountStatus.ACTIVE;
+        this.provider = provider;
     }
 
     // Spring Security 권한 처리
