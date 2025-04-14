@@ -103,12 +103,11 @@ public class AdminService {
     }
 
     /// 소원이 추가해;;
-    ///
 
-    // 통계 관련 메서드
+// 📌 소원이 추가해준 통계 관련 메서드들
     public AdminStatsDTO getAllStats() {
         return AdminStatsDTO.builder()
-                // 대시보드 요약
+                // 요약 통계
                 .totalUsers(userRepository.count())
                 .totalWebtoons(webtoonRepository.count())
                 .totalComments(commentRepository.count())
@@ -135,92 +134,62 @@ public class AdminService {
     }
 
     private long calculateTotalViews() {
-        // TODO: 전체 조회수 계산 로직 구현
         return 0;
-    }
+    } // TODO
 
     private long calculateDailyActiveUsers() {
-        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
-        LocalDateTime endOfDay = startOfDay.plusDays(1);
-        // TODO: 일일 활성 사용자 수 계산 로직 구현
         return 0;
-    }
+    } // TODO
 
     private long calculateMonthlyActiveUsers() {
-        LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
-        LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
-        // TODO: 월간 활성 사용자 수 계산 로직 구현
         return 0;
-    }
+    } // TODO
 
     private double calculateAverageSessionTime() {
-        // TODO: 평균 세션 시간 계산 로직 구현
         return 0;
-    }
+    } // TODO
 
     private double calculateNewUserGrowthRate() {
-        // TODO: 신규 사용자 증가율 계산 로직 구현
         return 0;
-    }
+    } // TODO
 
     private long calculateRecent7DaysUsers() {
-        LocalDateTime startDate = LocalDateTime.now().minusDays(7);
-        // TODO: 최근 7일간 신규 사용자 수 계산 로직 구현
         return 0;
-    }
+    } // TODO
 
     private long calculateRecent30DaysUsers() {
-        LocalDateTime startDate = LocalDateTime.now().minusDays(30);
-        // TODO: 최근 30일간 신규 사용자 수 계산 로직 구현
         return 0;
-    }
+    } // TODO
 
     private long calculateReportedCount() {
-        // TODO: 신고된 웹툰 수 계산 로직 구현
         return 0;
-    }
+    } // TODO
 
     private double calculateAverageRating() {
-        // TODO: 웹툰 평균 평점 계산 로직 구현
         return 0;
-    }
+    } // TODO
 
     private long calculateTotalWebtoonViews() {
-        // TODO: 웹툰 전체 조회수 계산 로직 구현
         return 0;
-    }
+    } // TODO
 
     private double calculateAverageDailyComments() {
-        // TODO: 일일 평균 댓글 수 계산 로직 구현
         return 0;
-    }
+    } // TODO
 
     private double calculateAverageCommentLength() {
-        // TODO: 평균 댓글 길이 계산 로직 구현
         return 0;
-    }
+    } // TODO
 
     public AdminStatsDTO getUserStats(AdminStatsParams params) {
-        // TODO: 날짜 범위 기반 통계 계산
         return AdminStatsDTO.builder()
                 .totalUsers(0)
                 .totalWebtoons(0)
                 .totalComments(0)
-                .build();
+                .build(); // TODO: 실제 계산 로직
     }
 
-    // public AdminStatsDTO getWebtoonStats(StatsParams params) {
-    // return AdminStatsDTO.builder()
-    // .totalWebtoons(webtoonRepository.count())
-    // .reportedCount(calculateReportedCount())
-    // .osmConversionCount(webtoonRepository.countOsmuOXNotNull())
-    // .averageRating(calculateAverageRating())
-    // .totalWebtoonViews(calculateTotalWebtoonViews())
-    // .build();
-    // }
     public WebtoonStatsResponse getWebtoonStats(AdminStatsParams params) {
-
-        // 더미 데이터로 구성된 응답
         return WebtoonStatsResponse.builder()
                 .summary(WebtoonStatsResponse.Summary.builder()
                         .totalWebtoons(120)
@@ -228,53 +197,29 @@ public class AdminService {
                         .osmConversions(10)
                         .totalViews(15000L)
                         .build())
-
                 .statusDistribution(List.of(
                         WebtoonStatsResponse.StatusDistribution.builder().status("연재중").count(80).build(),
                         WebtoonStatsResponse.StatusDistribution.builder().status("완결").count(30).build(),
                         WebtoonStatsResponse.StatusDistribution.builder().status("휴재").count(10).build()))
-
                 .topRatedWebtoons(List.of(
                         WebtoonStatsResponse.TopRatedWebtoon.builder().name("화산귀환").rating(4.92).episodes(100).build(),
                         WebtoonStatsResponse.TopRatedWebtoon.builder().name("나혼렙").rating(4.88).episodes(150).build()))
-
                 .recentWebtoons(List.of(
-                        WebtoonStatsResponse.RecentWebtoon.builder().name("던전리셋").date("2024-04-10").genre("판타지")
-                                .build(),
-                        WebtoonStatsResponse.RecentWebtoon.builder().name("세기말 키드").date("2024-04-09").genre("액션")
-                                .build()))
-
+                        WebtoonStatsResponse.RecentWebtoon.builder().name("던전리셋").date("2024-04-10").genre("판타지").build(),
+                        WebtoonStatsResponse.RecentWebtoon.builder().name("세기말 키드").date("2024-04-09").genre("액션").build()))
                 .activityStats(List.of(
-                        WebtoonStatsResponse.ActivityStat.builder().name("전지적 독자 시점").comments(120).likes(350)
-                                .views(8000).build(),
-                        WebtoonStatsResponse.ActivityStat.builder().name("화산귀환").comments(90).likes(310).views(7000)
-                                .build()))
-
+                        WebtoonStatsResponse.ActivityStat.builder().name("전지적 독자 시점").comments(120).likes(350).views(8000).build(),
+                        WebtoonStatsResponse.ActivityStat.builder().name("화산귀환").comments(90).likes(310).views(7000).build()))
                 .monthlyStats(WebtoonStatsResponse.MonthlyStats.builder()
                         .totalViews(12000L)
                         .totalActivity(24500L)
                         .build())
-
                 .build();
     }
-
-    // public AdminStatsDTO getAuthorStats(StatsParams params) {
-    // // TODO: 작가 관련 통계만 넣기
-    // return AdminStatsDTO.builder()
-    // .totalAuthors(appUserRepository.countAuthors()) // 작가 수
-    // .averageWorksPerAuthor(appUserRepository.averageWorksPerAuthor()) // 평균 연재 작품
-    // 수
-    // .averageRating(appUserRepository.averageAuthorRating()) // 작가 평균 평점
-    // .build();
-    // }
 
     public AdminStatsDTO getCommentStats(AdminStatsParams params) {
-        // TODO: 댓글 관련 통계만 넣기
         return AdminStatsDTO.builder()
                 .totalComments(commentRepository.count())
-                // .avgDailyComments(WebtoonCommentRepository.calculateAverageDailyComments())
-                // .avgCommentLength(WebtoonCommentRepository.calculateAverageCommentLength())
-                .build();
+                .build(); // TODO: 평균 길이/일일평균은 추후 계산
     }
-
 }
