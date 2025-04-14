@@ -22,14 +22,14 @@ public class UserWebtoonReview {
     @Column(nullable = true)
     private Integer rating; // 평점
 
-    @Column(nullable = false)
-    private Boolean isLiked = false; // 좋아요
+    @Column
+    private Boolean isLiked; // 좋아요
 
-    @Column(nullable = false)
-    private Boolean isFavorite = false; // 즐겨찾기 여부
+    @Column
+    private Boolean isFavorite; // 즐겨찾기 여부
 
-    @Column(nullable = false)
-    private Boolean isWatched = false; // 봤어요 여부
+    @Column
+    private Boolean isWatched; // 봤어요 여부
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_index_id", nullable = false)
