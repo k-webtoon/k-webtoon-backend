@@ -18,8 +18,8 @@ import java.util.List;
 @RequestMapping("/api/connector")
 public class ConnectorController {
 
-    private ConnectorService connectorService;
-    private HeaderValidator headerValidator;
+    private final ConnectorService connectorService;
+    private final HeaderValidator headerValidator;
 
 
     @PostMapping("/sendM")
