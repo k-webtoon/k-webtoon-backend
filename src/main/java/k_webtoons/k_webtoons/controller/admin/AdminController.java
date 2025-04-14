@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import k_webtoons.k_webtoons.model.admin.*;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonStatsResponse;
 import k_webtoons.k_webtoons.service.adminService.AdminService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -20,17 +21,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
+@RequiredArgsConstructor
 @Tag(name = "Admin API", description = "관리자 전용 API 모음")
 @SecurityRequirement(name = "JWT")
 public class AdminController {
 
     private final AdminService adminService;
 
-    public AdminController(AdminService adminService) {
-        this.adminService = adminService;
-    }
-
-    /* 대시보드 관련 */
     @GetMapping("/dashboard/summary")
     @Operation(summary = "대시보드 요약 통계", description = "전체 유저/웹툰/댓글 수를 요약하여 제공합니다.")
     public ResponseEntity<DashboardSummaryDto> getDashboardSummary() {
@@ -77,28 +74,4 @@ public class AdminController {
         return ResponseEntity.ok(Collections.singletonMap("message", "웹툰이 성공적으로 비공개 처리되었습니다"));
     }
 
-    /* 통계 관련 */
-    @GetMapping("/stats")
-    @Operation(summary = "전체 통계 조회", description = "모든 통계 데이터를 한 번에 조회합니다.")
-    public ResponseEntity<AdminStatsDTO> getAllStats() {
-        return ResponseEntity.ok(adminService.getAllStats());
-    }
-
-    @GetMapping("/stats/users")
-    @Operation(summary = "사용자 통계 조회")
-    public ResponseEntity<AdminStatsDTO> getUserStats(@ModelAttribute AdminStatsParams params) {
-        return ResponseEntity.ok(adminService.getUserStats(params));
-    }
-
-    @GetMapping("/stats/webtoons")
-    @Operation(summary = "웹툰 통계 조회")
-    public ResponseEntity<WebtoonStatsResponse> getWebtoonStats(@ModelAttribute AdminStatsParams params) {
-        return ResponseEntity.ok(adminService.getWebtoonStats(params));
-    }
-
-    @GetMapping("/stats/comments")
-    @Operation(summary = "댓글 통계 조회")
-    public ResponseEntity<AdminStatsDTO> getCommentStats(@ModelAttribute AdminStatsParams params) {
-        return ResponseEntity.ok(adminService.getCommentStats(params));
-    }
 }
