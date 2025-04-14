@@ -33,5 +33,9 @@ public interface UserWebtoonReviewRepository extends JpaRepository<UserWebtoonRe
 
     // 봤어요 목록 조회
     List<UserWebtoonReview> findByAppUserAndIsWatchedTrue(AppUser user);
+
+    // 사용자의 좋아요 또는 즐겨찾기 웹툰 조회
+    @Query("SELECT r FROM UserWebtoonReview r WHERE r.appUser = :user AND (r.isLiked = true OR r.isFavorite = true)")
+    List<UserWebtoonReview> findUserLikedOrFavoritedWebtoons(@Param("user") AppUser user);
 }
 
