@@ -81,4 +81,19 @@ public class UserFollowController {
         long followeeCount = userFollowService.getFolloweeCount(userId);
         return ResponseEntity.ok(followeeCount);
     }
+
+    //소원 추가
+
+    // 팔로우 상태 확인
+    @Operation(summary = "팔로우 상태 확인", description = "followerId와 followeeId의 팔로우 상태를 확인합니다.")
+    @GetMapping("/status/{followerId}/{followeeId}")
+    public ResponseEntity<Boolean> checkFollowStatus(
+            @Parameter(description = "팔로우하는 유저 ID", example = "1") @PathVariable long followerId,
+            @Parameter(description = "팔로우 당하는 유저 ID", example = "2") @PathVariable long followeeId
+    ) {
+        // 팔로우 상태 확인 서비스 호출
+        boolean isFollowing = userFollowService.checkFollowStatus(followerId, followeeId);
+        return ResponseEntity.ok(isFollowing);
+    }
+
 }
