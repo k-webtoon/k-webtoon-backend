@@ -74,9 +74,19 @@ public class WebtoonReviewService {
         Webtoon webtoon = webtoonService.getWebtoonById(webtoonId);
 
         UserWebtoonReview review = reviewRepository.findByAppUserAndWebtoon(user, webtoon)
-                .orElseGet(() -> new UserWebtoonReview(user, webtoon, false));
+                .orElseGet(() -> {
+                    UserWebtoonReview newReview = new UserWebtoonReview(user, webtoon, false);
+                    return newReview;
+                });
 
-        review.setIsFavorite(!review.getIsFavorite());
+        // null-safe 토글 처리
+        Boolean current = review.getIsFavorite();
+        if (current == null) {
+            review.setIsFavorite(true);
+        } else {
+            review.setIsFavorite(!current);
+        }
+
         reviewRepository.save(review);
 
         return new FavoriteDTO(webtoon.getId(), review.getIsFavorite());

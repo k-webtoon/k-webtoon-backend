@@ -3,9 +3,11 @@ package k_webtoons.k_webtoons.service.admin;
 import k_webtoons.k_webtoons.exception.CustomException;
 import k_webtoons.k_webtoons.exception.WebtoonNotFoundException;
 import k_webtoons.k_webtoons.model.admin.FindAllUserByAdminDTO;
+import k_webtoons.k_webtoons.model.admin.UserCountSummaryDTO;
 import k_webtoons.k_webtoons.model.admin.UserDetailByAdminDTO;
 import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
+import k_webtoons.k_webtoons.security.AccountStatus;
 import k_webtoons.k_webtoons.security.HeaderValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -92,6 +94,39 @@ public class AdminService {
 
         // 3. 비공개 처리
         webtoon.setIsPublic(false);
+    }
+
+    public UserCountSummaryDTO getUserCountSummary() {
+        long total = userRepository.count();
+        long active = userRepository.countByAccountStatus(AccountStatus.ACTIVE);
+        long suspended = userRepository.countByAccountStatus(AccountStatus.SUSPENDED);
+        long deactivated = userRepository.countByAccountStatus(AccountStatus.DEACTIVATED);
+
+        return new UserCountSummaryDTO(total, active, suspended, deactivated);
+    }
+
+    // 상태별 사용자 목록 조회 (페이지네이션)
+    public Page<FindAllUserByAdminDTO> getUsersByStatus(String status, Pageable pageable) {
+        // "all" 또는 빈 값인 경우 모든 사용자 반환
+        if (status == null || status.equalsIgnoreCase("all") || status.isEmpty()) {
+            return getAllUsers(pageable);
+        }
+
+        // 상태 값 검증 - 대소문자 무관하게 처리
+        AccountStatus accountStatus;
+        try {
+            accountStatus = AccountStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            // 잘못된 status인 경우 전체 사용자 반환
+            return getAllUsers(pageable);
+        }
+
+        return userRepository.findByAccountStatus(accountStatus, pageable)
+                .map(user -> new FindAllUserByAdminDTO(
+                        user.getIndexId(),
+                        user.getUserEmail(),
+                        user.getAccountStatus().name(),
+                        user.getCreateDateTime()));
     }
 
 }
