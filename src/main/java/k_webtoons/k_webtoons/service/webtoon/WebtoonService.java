@@ -3,9 +3,10 @@ package k_webtoons.k_webtoons.service.webtoon;
 import k_webtoons.k_webtoons.exception.WebtoonNotFoundException;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonDetailResponse;
+import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonPopularityDTO;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
+import k_webtoons.k_webtoons.repository.webtoon.UserWebtoonReviewRepository;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -22,6 +22,9 @@ public class WebtoonService {
 
     @Autowired
     private WebtoonRepository webtoonRepository;
+    
+    @Autowired
+    private UserWebtoonReviewRepository userWebtoonReviewRepository;
 
     // 조회수 높은 웹툰 리스트 조회 (내림차순 정렬)
     public Page<WebtoonViewCountResponse> getTopWebtoons(int page, int size) {
@@ -149,4 +152,30 @@ public class WebtoonService {
         return value != null && value == 1;
     }
 
+    // 웹툰을 (좋아요 수) 순으로 조회
+    public List<WebtoonPopularityDTO> getMostFavoritedWebtoons(int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        List<Object[]> results = userWebtoonReviewRepository.findMostFavoritedWebtoons(pageable);
+        
+        List<WebtoonPopularityDTO> popularWebtoons = new ArrayList<>();
+        
+        for (Object[] result : results) {
+            Long webtoonId = (Long) result[0];
+            Long favoriteCount = ((Number) result[1]).longValue();
+            
+            // 웹툰 상세 정보 조회
+            Webtoon webtoon = webtoonRepository.findById(webtoonId)
+                    .orElseThrow(() -> new WebtoonNotFoundException("웹툰을 찾을 수 없습니다"));
+            
+            popularWebtoons.add(new WebtoonPopularityDTO(
+                    webtoon.getId(),
+                    webtoon.getTitleName(),
+                    webtoon.getAuthor(),
+                    webtoon.getThumbnailUrl(),
+                    favoriteCount
+            ));
+        }
+        
+        return popularWebtoons;
+    }
 }
