@@ -39,12 +39,28 @@ public interface UserWebtoonReviewRepository extends JpaRepository<UserWebtoonRe
     @Query("SELECT r FROM UserWebtoonReview r WHERE r.appUser = :user AND (r.isLiked = true OR r.isFavorite = true)")
     List<UserWebtoonReview> findUserLikedOrFavoritedWebtoons(@Param("user") AppUser user);
     
-    // 좋아요가 많은 순으로 웹툰 조회
+    // 즐겨찾기가 많은 순으로 웹툰 조회
     @Query("SELECT uwr.webtoon.id AS webtoonId, COUNT(uwr) AS favoriteCount " +
            "FROM UserWebtoonReview uwr " +
            "WHERE uwr.isFavorite = true " +
            "GROUP BY uwr.webtoon.id " +
            "ORDER BY COUNT(uwr) DESC")
     List<Object[]> findMostFavoritedWebtoons(Pageable pageable);
+    
+    // 좋아요가 많은 순으로 웹툰 조회
+    @Query("SELECT uwr.webtoon.id AS webtoonId, COUNT(uwr) AS likeCount " +
+           "FROM UserWebtoonReview uwr " +
+           "WHERE uwr.isLiked = true " +
+           "GROUP BY uwr.webtoon.id " +
+           "ORDER BY COUNT(uwr) DESC")
+    List<Object[]> findMostLikedWebtoons(Pageable pageable);
+    
+    // 봤어요가 많은 순으로 웹툰 조회
+    @Query("SELECT uwr.webtoon.id AS webtoonId, COUNT(uwr) AS watchedCount " +
+           "FROM UserWebtoonReview uwr " +
+           "WHERE uwr.isWatched = true " +
+           "GROUP BY uwr.webtoon.id " +
+           "ORDER BY COUNT(uwr) DESC")
+    List<Object[]> findMostWatchedWebtoons(Pageable pageable);
 }
 

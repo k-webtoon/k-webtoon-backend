@@ -1,11 +1,15 @@
 package k_webtoons.k_webtoons.model.webtoon.dto;
+import java.util.List;
 
- // 웹툰(좋아요 많은 순) DTO
 public record WebtoonPopularityDTO(
     Long webtoonId,
     String titleName,
     String author,
     String thumbnailUrl,
-    Long favoriteCount
+    List<String> genre,
+    Boolean adult,
+    Boolean finish,
+    String starScore,
+    Long totalCount
 ) {
 }

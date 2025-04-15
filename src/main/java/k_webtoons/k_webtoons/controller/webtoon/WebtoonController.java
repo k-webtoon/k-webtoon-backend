@@ -131,4 +131,40 @@ public class WebtoonController {
         List<WebtoonPopularityDTO> webtoons = webtoonService.getMostFavoritedWebtoons(page, size);
         return ResponseEntity.ok(webtoons);
     }
+    
+    // 좋아요가 많은 웹툰 조회 API
+    @Operation(
+            summary = "좋아요가 많은 웹툰 조회",
+            description = "is_liked가 true인 웹툰을 좋아요 수 기준으로 내림차순 정렬하여 반환"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공적으로 인기 웹툰 목록 반환")
+    })
+    @GetMapping("/popular/likes")
+    public ResponseEntity<List<WebtoonPopularityDTO>> getMostLikedWebtoons(
+            @Parameter(description = "페이지 번호 (기본값: 0)", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기 (기본값: 10)", example = "10")
+            @RequestParam(defaultValue = "10") int size) {
+        List<WebtoonPopularityDTO> webtoons = webtoonService.getMostLikedWebtoons(page, size);
+        return ResponseEntity.ok(webtoons);
+    }
+    
+    // 봤어요가 많은 웹툰 조회 API
+    @Operation(
+            summary = "봤어요가 많은 웹툰 조회",
+            description = "is_watched가 true인 웹툰을 봤어요 수 기준으로 내림차순 정렬하여 반환"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공적으로 인기 웹툰 목록 반환")
+    })
+    @GetMapping("/popular/watched")
+    public ResponseEntity<List<WebtoonPopularityDTO>> getMostWatchedWebtoons(
+            @Parameter(description = "페이지 번호 (기본값: 0)", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기 (기본값: 10)", example = "10")
+            @RequestParam(defaultValue = "10") int size) {
+        List<WebtoonPopularityDTO> webtoons = webtoonService.getMostWatchedWebtoons(page, size);
+        return ResponseEntity.ok(webtoons);
+    }
 }
