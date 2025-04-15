@@ -8,6 +8,7 @@ import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
 import k_webtoons.k_webtoons.security.HeaderValidator;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ import k_webtoons.k_webtoons.repository.webtoonComment.WebtoonCommentRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AdminService {
 
     private final UserRepository userRepository;
@@ -47,8 +48,7 @@ public class AdminService {
         return new DashboardSummaryDto(
                 getTotalUsers(),
                 getTotalWebtoons(),
-                getTotalComments()
-        );
+                getTotalComments());
     }
 
     // 전체 사용자 찾아오기(페이지 기능)
@@ -58,13 +58,13 @@ public class AdminService {
                         user.getIndexId(),
                         user.getUserEmail(),
                         user.getAccountStatus().name(),
-                        user.getCreateDateTime()
-                ));
+                        user.getCreateDateTime()));
     }
 
     public UserDetailByAdminDTO getUserDetails(Long indexId) {
         AppUser user = userRepository.findById(indexId)
-                .orElseThrow(() -> new CustomException("사용자를 찾을 수 없습니다. 받은 id : " + indexId, "USER NOT FOUND EXCEPTION"));
+                .orElseThrow(
+                        () -> new CustomException("사용자를 찾을 수 없습니다. 받은 id : " + indexId, "USER NOT FOUND EXCEPTION"));
         return new UserDetailByAdminDTO(
                 user.getIndexId(),
                 user.getUserEmail(),
@@ -74,11 +74,10 @@ public class AdminService {
                 user.getGender(),
                 user.getNickname(),
                 user.getPhoneNumber(),
-                user.getSecurityQuestion()
-        );
+                user.getSecurityQuestion());
     }
 
-    //웹툰 비공개 처리
+    // 웹툰 비공개 처리
 
     @Transactional
     public void setWebtoonPrivate(Long webtoonId) {
@@ -95,6 +94,5 @@ public class AdminService {
         // 3. 비공개 처리
         webtoon.setIsPublic(false);
     }
-
 
 }
