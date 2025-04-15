@@ -36,8 +36,8 @@ public class WebtoonReviewController {
             @ApiResponse(responseCode = "404", description = "사용자 정보를 찾을 수 없음")
     })
     @GetMapping("/{userId}/likes")
-    public ResponseEntity<List<LikeDTO>> getLikes(@PathVariable Long userId) {
-        List<LikeDTO> response = reviewService.getLikes(userId);
+    public ResponseEntity<List<LikeReloadDTO>> getLikes(@PathVariable Long userId) {
+        List<LikeReloadDTO> response = reviewService.getLikes(userId);
         return ResponseEntity.ok(response);
     }
 

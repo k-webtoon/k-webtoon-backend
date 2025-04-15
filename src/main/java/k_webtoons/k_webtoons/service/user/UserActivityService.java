@@ -116,7 +116,7 @@ public class UserActivityService {
     }
 
     public UserActivityInfoResponse getUserActivityInfo(Long userId) {
-        UserActivity userActivity = userActivityRepository.findByAppUser_indexId(userId)
+        UserActivity userActivity = userActivityRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException("사용자 활동 정보를 찾을 수 없습니다.", "USER_ACTIVITY_NOT_FOUND"));
 
         return new UserActivityInfoResponse(
@@ -128,7 +128,7 @@ public class UserActivityService {
     // 사용자 프로필 이미지만 조회(검증없음)
     @Transactional(readOnly = true)
     public String getProfileImageUrl(Long userId) {
-        UserActivity userActivity = userActivityRepository.findByAppUser_indexId(userId)
+        UserActivity userActivity = userActivityRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException("사용자 활동 정보 없음", "USER_ACTIVITY_NOT_FOUND"));
 
         return userActivity.getProfileImageUrl() != null
@@ -139,8 +139,8 @@ public class UserActivityService {
 
     @Transactional(readOnly = true)
     public String getBio(Long userId) {
-        return userActivityRepository.findByAppUser_indexId(userId)
-                .map(UserActivity::getBio)
+        return userActivityRepository.findByUserId(userId)
+                .map(ua -> ua.getBio() != null ? ua.getBio() : "")
                 .orElseThrow(() -> new CustomException("사용자 활동 정보 없음", "USER_ACTIVITY_NOT_FOUND"));
     }
 }
