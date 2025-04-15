@@ -54,5 +54,13 @@ public interface UserWebtoonReviewRepository extends JpaRepository<UserWebtoonRe
            "GROUP BY uwr.webtoon.id " +
            "ORDER BY COUNT(uwr) DESC")
     List<Object[]> findMostLikedWebtoons(Pageable pageable);
+    
+    // 봤어요가 많은 순으로 웹툰 조회
+    @Query("SELECT uwr.webtoon.id AS webtoonId, COUNT(uwr) AS watchedCount " +
+           "FROM UserWebtoonReview uwr " +
+           "WHERE uwr.isWatched = true " +
+           "GROUP BY uwr.webtoon.id " +
+           "ORDER BY COUNT(uwr) DESC")
+    List<Object[]> findMostWatchedWebtoons(Pageable pageable);
 }
 

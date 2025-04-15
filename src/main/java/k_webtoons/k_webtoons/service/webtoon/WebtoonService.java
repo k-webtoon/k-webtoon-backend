@@ -215,4 +215,36 @@ public class WebtoonService {
         
         return popularWebtoons;
     }
+    
+    // 웹툰을 봤어요 수 순으로 조회
+    public List<WebtoonPopularityDTO> getMostWatchedWebtoons(int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        List<Object[]> results = userWebtoonReviewRepository.findMostWatchedWebtoons(pageable);
+        
+        List<WebtoonPopularityDTO> popularWebtoons = new ArrayList<>();
+        
+        for (Object[] result : results) {
+            Long webtoonId = (Long) result[0];
+            Long totalCount = ((Number) result[1]).longValue();
+            
+            Webtoon webtoon = webtoonRepository.findById(webtoonId)
+                    .orElseThrow(() -> new WebtoonNotFoundException("웹툰을 찾을 수 없습니다"));
+            
+            List<String> genre = webtoonRepository.findGenreByWebtoonId(webtoonId);
+            
+            popularWebtoons.add(new WebtoonPopularityDTO(
+                    webtoon.getId(),
+                    webtoon.getTitleName(),
+                    webtoon.getAuthor(),
+                    webtoon.getThumbnailUrl(),
+                    genre,
+                    webtoon.getAdult(),
+                    webtoon.getFinish(),
+                    String.format("%.1f", webtoon.getStarScore()),
+                    totalCount  // 총 봤어요 수 반환
+            ));
+        }
+        
+        return popularWebtoons;
+    }
 }
