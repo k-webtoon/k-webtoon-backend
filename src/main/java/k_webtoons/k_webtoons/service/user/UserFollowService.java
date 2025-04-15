@@ -155,4 +155,23 @@ public class UserFollowService {
             throw new CustomException("팔로잉 수 조회 중 오류가 발생했습니다.", "GET_FOLLOWEE_COUNT_ERROR");
         }
     }
+
+    @Transactional(readOnly = true)
+    public boolean checkFollowStatus(long followerId, long followeeId) {
+        try {
+            // 팔로워와 팔로이 유저를 조회
+            AppUser follower = appUserRepository.findById(followerId)
+                    .orElseThrow(() -> new EntityNotFoundException("팔로워 유저를 찾을 수 없습니다."));
+            AppUser followee = appUserRepository.findById(followeeId)
+                    .orElseThrow(() -> new EntityNotFoundException("팔로이 유저를 찾을 수 없습니다."));
+
+            // 팔로우 관계 존재 여부 확인
+            return userFollowRepository.existsByFollowerAndFollowee(follower, followee);
+        } catch (EntityNotFoundException e) {
+            throw new CustomException("유저를 찾을 수 없습니다: " + e.getMessage(), "USER_NOT_FOUND");
+        } catch (Exception e) {
+            throw new CustomException("팔로우 상태 확인 중 오류가 발생했습니다.", "FOLLOW_STATUS_CHECK_ERROR");
+        }
+    }
+
 }

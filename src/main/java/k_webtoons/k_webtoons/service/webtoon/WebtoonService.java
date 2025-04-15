@@ -152,7 +152,7 @@ public class WebtoonService {
         return value != null && value == 1;
     }
 
-    // 웹툰을 (좋아요 수) 순으로 조회
+    // 웹툰을 즐겨찾기 수 순으로 조회
     public List<WebtoonPopularityDTO> getMostFavoritedWebtoons(int page, int size) {
         PageRequest pageable = PageRequest.of(page, size);
         List<Object[]> results = userWebtoonReviewRepository.findMostFavoritedWebtoons(pageable);
@@ -161,18 +161,87 @@ public class WebtoonService {
         
         for (Object[] result : results) {
             Long webtoonId = (Long) result[0];
-            Long favoriteCount = ((Number) result[1]).longValue();
+            Long totalCount = ((Number) result[1]).longValue();
             
-            // 웹툰 상세 정보 조회
             Webtoon webtoon = webtoonRepository.findById(webtoonId)
                     .orElseThrow(() -> new WebtoonNotFoundException("웹툰을 찾을 수 없습니다"));
+            
+            List<String> genre = webtoonRepository.findGenreByWebtoonId(webtoonId);
             
             popularWebtoons.add(new WebtoonPopularityDTO(
                     webtoon.getId(),
                     webtoon.getTitleName(),
                     webtoon.getAuthor(),
                     webtoon.getThumbnailUrl(),
-                    favoriteCount
+                    genre,
+                    webtoon.getAdult(),
+                    webtoon.getFinish(),
+                    String.format("%.1f", webtoon.getStarScore()),
+                    totalCount // 총 즐겨찾기 수 반환
+            ));
+        }
+        
+        return popularWebtoons;
+    }
+    
+    // 웹툰을 좋아요 수 순으로 조회
+    public List<WebtoonPopularityDTO> getMostLikedWebtoons(int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        List<Object[]> results = userWebtoonReviewRepository.findMostLikedWebtoons(pageable);
+        
+        List<WebtoonPopularityDTO> popularWebtoons = new ArrayList<>();
+        
+        for (Object[] result : results) {
+            Long webtoonId = (Long) result[0];
+            Long totalCount = ((Number) result[1]).longValue();
+            
+            Webtoon webtoon = webtoonRepository.findById(webtoonId)
+                    .orElseThrow(() -> new WebtoonNotFoundException("웹툰을 찾을 수 없습니다"));
+            
+            List<String> genre = webtoonRepository.findGenreByWebtoonId(webtoonId);
+            
+            popularWebtoons.add(new WebtoonPopularityDTO(
+                    webtoon.getId(),
+                    webtoon.getTitleName(),
+                    webtoon.getAuthor(),
+                    webtoon.getThumbnailUrl(),
+                    genre,
+                    webtoon.getAdult(),
+                    webtoon.getFinish(),
+                    String.format("%.1f", webtoon.getStarScore()),
+                    totalCount  // 총 좋아요 수 반환
+            ));
+        }
+        
+        return popularWebtoons;
+    }
+    
+    // 웹툰을 봤어요 수 순으로 조회
+    public List<WebtoonPopularityDTO> getMostWatchedWebtoons(int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        List<Object[]> results = userWebtoonReviewRepository.findMostWatchedWebtoons(pageable);
+        
+        List<WebtoonPopularityDTO> popularWebtoons = new ArrayList<>();
+        
+        for (Object[] result : results) {
+            Long webtoonId = (Long) result[0];
+            Long totalCount = ((Number) result[1]).longValue();
+            
+            Webtoon webtoon = webtoonRepository.findById(webtoonId)
+                    .orElseThrow(() -> new WebtoonNotFoundException("웹툰을 찾을 수 없습니다"));
+            
+            List<String> genre = webtoonRepository.findGenreByWebtoonId(webtoonId);
+            
+            popularWebtoons.add(new WebtoonPopularityDTO(
+                    webtoon.getId(),
+                    webtoon.getTitleName(),
+                    webtoon.getAuthor(),
+                    webtoon.getThumbnailUrl(),
+                    genre,
+                    webtoon.getAdult(),
+                    webtoon.getFinish(),
+                    String.format("%.1f", webtoon.getStarScore()),
+                    totalCount  // 총 봤어요 수 반환
             ));
         }
         
