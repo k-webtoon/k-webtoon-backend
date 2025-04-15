@@ -3,13 +3,13 @@ import java.util.List;
 
 public record WebtoonPopularityDTO(
     Long webtoonId,
-    String thumbnailUrl,
     String titleName,
     String author,
+    String thumbnailUrl,
     List<String> genre,
     Boolean adult,
     Boolean finish,
     String starScore,
-    Long favoriteCount
+    Long totalCount
 ) {
 }
