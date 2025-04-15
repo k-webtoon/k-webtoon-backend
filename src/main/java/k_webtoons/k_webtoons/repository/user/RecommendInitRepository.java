@@ -12,13 +12,16 @@ public interface RecommendInitRepository extends JpaRepository<UserWebtoonReview
 
     @Modifying
     @Query(value = """
-        INSERT INTO user_webtoon_review 
-        (user_index_id, webtoon_id, is_favorite, is_liked, is_watched, rating)
-        SELECT :userId, webtoon_id, true, true, false, null 
-        FROM unnest(:webtoonIds) AS webtoon_id
-        """, nativeQuery = true)
+            INSERT INTO user_webtoon_review
+            (user_index_id, webtoon_id, is_favorite, is_liked, is_watched, rating)
+            SELECT
+                CAST(:userId AS BIGINT),
+                CAST(webtoon_id AS BIGINT),
+                true, true, false, null
+            FROM unnest(CAST(:webtoonIds AS BIGINT[])) AS webtoon_id
+            """, nativeQuery = true)
     void insertInitialRecommendations(
             @Param("userId") Long userId,
-            @Param("webtoonIds") List<Long> webtoonIds
+            @Param("webtoonIds") Long[] webtoonIds
     );
 }
