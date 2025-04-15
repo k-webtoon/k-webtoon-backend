@@ -32,7 +32,37 @@ INSERT INTO public.app_user (
 (24, CURRENT_TIMESTAMP, NULL, '여', '이정은', '010-1000-0028', 'USER', '서울', '어디서 태어났나요?', 'jeongeun@gmail.com', 'password123', 'ACTIVE', 'LOCAL'),
 (35, CURRENT_TIMESTAMP, NULL, '남', '이경수', '010-1000-0029', 'USER', '경상도', '어디서 태어났나요?', 'kyoungsoo@gmail.com', 'password123', 'ACTIVE', 'LOCAL');
 
-
+INSERT INTO public.user_activity (is_profile_public, app_user_id, profile_image_url, bio)
+VALUES
+(true, 1, null, null),
+(true, 2, null, null),
+(true, 3, null, null),
+(true, 4, null, null),
+(true, 5, null, null),
+(true, 6, null, null),
+(true, 7, null, null),
+(true, 8, null, null),
+(true, 9, null, null),
+(true, 10, null, null),
+(true, 11, null, null),
+(true, 12, null, null),
+(true, 13, null, null),
+(true, 14, null, null),
+(true, 15, null, null),
+(true, 16, null, null),
+(true, 17, null, null),
+(true, 18, null, null),
+(true, 19, null, null),
+(true, 20, null, null),
+(true, 21, null, null),
+(true, 22, null, null),
+(true, 23, null, null),
+(true, 24, null, null),
+(true, 25, null, null),
+(true, 26, null, null),
+(true, 27, null, null),
+(true, 28, null, null),
+(true, 29, null, null);
 
 INSERT INTO public.user_webtoon_review
 (user_index_id, webtoon_id, is_favorite, is_liked, is_watched, rating)
