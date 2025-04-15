@@ -2,6 +2,8 @@ package k_webtoons.k_webtoons.repository.user;
 
 import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.security.AccountStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -20,4 +22,8 @@ public interface UserRepository extends JpaRepository<AppUser, Long> {
     Optional<AppUser> findByPhoneNumber(String phoneNumber);
 
     List<AppUser> findByAccountStatus(AccountStatus status);
+
+    long countByAccountStatus(AccountStatus status);
+
+    Page<AppUser> findByAccountStatus(AccountStatus status, Pageable pageable);
 }

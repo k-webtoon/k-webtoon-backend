@@ -71,4 +71,21 @@ public class AdminController {
         return ResponseEntity.ok(Collections.singletonMap("message", "웹툰이 성공적으로 비공개 처리되었습니다"));
     }
 
+    // 사용자 상태별 요약 통계
+    @GetMapping("/users/summary")
+    public ResponseEntity<UserCountSummaryDTO> getUserCountSummary() {
+        return ResponseEntity.ok(adminService.getUserCountSummary());
+    }
+
+    // 상태별 사용자 리스트 (페이지네이션)
+    @GetMapping("/users/by-status")
+    public ResponseEntity<Page<FindAllUserByAdminDTO>> getUsersByStatus(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        return ResponseEntity.ok(adminService.getUsersByStatus(status, pageRequest));
+    }
+
 }
