@@ -152,7 +152,7 @@ public class WebtoonService {
         return value != null && value == 1;
     }
 
-    // 웹툰을 (좋아요 수) 순으로 조회
+    // 웹툰을 즐겨찾기 수 순으로 조회
     public List<WebtoonPopularityDTO> getMostFavoritedWebtoons(int page, int size) {
         PageRequest pageable = PageRequest.of(page, size);
         List<Object[]> results = userWebtoonReviewRepository.findMostFavoritedWebtoons(pageable);
@@ -167,11 +167,18 @@ public class WebtoonService {
             Webtoon webtoon = webtoonRepository.findById(webtoonId)
                     .orElseThrow(() -> new WebtoonNotFoundException("웹툰을 찾을 수 없습니다"));
             
+            // 장르 정보 조회
+            List<String> genre = webtoonRepository.findGenreByWebtoonId(webtoonId);
+            
             popularWebtoons.add(new WebtoonPopularityDTO(
                     webtoon.getId(),
+                    webtoon.getThumbnailUrl(),
                     webtoon.getTitleName(),
                     webtoon.getAuthor(),
-                    webtoon.getThumbnailUrl(),
+                    genre,
+                    webtoon.getAdult(),
+                    webtoon.getFinish(),
+                    String.format("%.1f", webtoon.getStarScore()),
                     favoriteCount
             ));
         }
