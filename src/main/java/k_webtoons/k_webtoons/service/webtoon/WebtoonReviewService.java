@@ -109,14 +109,24 @@ public class WebtoonReviewService {
 
     // 사용자별 좋아요 목록 조회 (모든 리뷰 반환)
     @Transactional(readOnly = true)
-    public List<LikeDTO> getLikes(Long userId) {
+    public List<LikeReloadDTO> getLikes(Long userId) {
         AppUser user = authService.getUserByUserId(userId);
 
-        // 모든 리뷰를 가져오고, 각 리뷰의 isLiked 값을 포함
-        return reviewRepository.findByAppUser(user).stream()
-                .map(review -> new LikeDTO(review.getWebtoon().getId(), review.getIsLiked()))
+        return reviewRepository.findByAppUserAndIsLikedTrue(user).stream()
+                .map(review -> {
+                    Webtoon webtoon = review.getWebtoon();
+                    return new LikeReloadDTO(
+                            webtoon.getId(),
+                            true,
+                            webtoon.getTitleName(),
+                            webtoon.getAuthor(),
+                            webtoon.getThumbnailUrl()
+                    );
+                })
                 .collect(Collectors.toList());
     }
+
+
 
     // 사용자별 평점 목록 조회
     @Transactional(readOnly = true)
