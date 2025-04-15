@@ -3,6 +3,7 @@ package k_webtoons.k_webtoons.repository.webtoon;
 import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.webtoon.UserWebtoonReview;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -37,5 +38,13 @@ public interface UserWebtoonReviewRepository extends JpaRepository<UserWebtoonRe
     // 사용자의 좋아요 또는 즐겨찾기 웹툰 조회
     @Query("SELECT r FROM UserWebtoonReview r WHERE r.appUser = :user AND (r.isLiked = true OR r.isFavorite = true)")
     List<UserWebtoonReview> findUserLikedOrFavoritedWebtoons(@Param("user") AppUser user);
+    
+    // 좋아요가 많은 순으로 웹툰 조회
+    @Query("SELECT uwr.webtoon.id AS webtoonId, COUNT(uwr) AS favoriteCount " +
+           "FROM UserWebtoonReview uwr " +
+           "WHERE uwr.isFavorite = true " +
+           "GROUP BY uwr.webtoon.id " +
+           "ORDER BY COUNT(uwr) DESC")
+    List<Object[]> findMostFavoritedWebtoons(Pageable pageable);
 }
 
