@@ -1,4 +1,4 @@
-package k_webtoons.k_webtoons.service.adminService;
+package k_webtoons.k_webtoons.service.admin;
 
 import k_webtoons.k_webtoons.exception.CustomException;
 import k_webtoons.k_webtoons.exception.WebtoonNotFoundException;
@@ -7,7 +7,6 @@ import k_webtoons.k_webtoons.model.admin.UserDetailByAdminDTO;
 import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
 import k_webtoons.k_webtoons.security.HeaderValidator;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

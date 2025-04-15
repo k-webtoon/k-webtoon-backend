@@ -1,8 +1,8 @@
 package k_webtoons.k_webtoons.controller.admin;
 
 import k_webtoons.k_webtoons.model.admin.StatResponse;
-import k_webtoons.k_webtoons.service.adminService.AdminStatsService;
-import lombok.RequiredArgsConstructor;
+import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
+import k_webtoons.k_webtoons.service.admin.AdminStatsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,5 +37,11 @@ public class AdminStatsController {
     public ResponseEntity<StatResponse> getRecent30DaysUsers() {
         Long recent30DaysUsers = adminStatsService.getRecent30DaysUsers();
         return ResponseEntity.ok(new StatResponse(recent30DaysUsers));
+    }
+
+    // 로그 기반 가장 조회가 많이된 웹툰
+    @GetMapping("/most-visited-webtoon-detail")
+    public ResponseEntity<WebtoonViewCountResponse> getMostVisitedWebtoonDetail() {
+        return ResponseEntity.ok(adminStatsService.getMostVisitedWebtoonDetail());
     }
 }
