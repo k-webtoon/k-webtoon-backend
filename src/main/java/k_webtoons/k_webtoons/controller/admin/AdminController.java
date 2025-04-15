@@ -1,12 +1,9 @@
 package k_webtoons.k_webtoons.controller.admin;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import k_webtoons.k_webtoons.model.admin.*;
-import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonStatsResponse;
 import k_webtoons.k_webtoons.service.adminService.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
