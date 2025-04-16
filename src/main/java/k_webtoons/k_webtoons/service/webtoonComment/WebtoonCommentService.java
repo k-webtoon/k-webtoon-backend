@@ -1,6 +1,6 @@
 package k_webtoons.k_webtoons.service.webtoonComment;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import k_webtoons.k_webtoons.exception.CustomException;
 import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
@@ -8,6 +8,7 @@ import k_webtoons.k_webtoons.model.webtoonComment.CommentLike;
 import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentRequestDTO;
 import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentResponseDTO;
 import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
+import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentWithAnalysisResponse;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
 import k_webtoons.k_webtoons.repository.webtoonComment.CommentLikeRepository;
 import k_webtoons.k_webtoons.repository.webtoonComment.WebtoonCommentRepository;
@@ -22,7 +23,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +33,7 @@ public class WebtoonCommentService {
     private final CommentLikeRepository likeRepository;
     private final WebtoonRepository webtoonRepository;
     private final HeaderValidator headerValidator;
+    private final AsyncAnalysisService asyncAnalysisService;
 
     // ========= 공통 검증 메서드 분리 =========
     private void validateCommentOwnership(WebtoonComment comment, AppUser currentUser) {
@@ -57,11 +59,13 @@ public class WebtoonCommentService {
 
         WebtoonComment savedComment = commentRepository.save(comment);
 
+        asyncAnalysisService.analyzeCommentAsync(savedComment);
+
         // 즉시 DTO 변환으로 영속성 컨텍스트 분리
         return convertToDto(savedComment);
     }
 
-    // ========= 댓글 조회 =========
+    // ========= 웹툰 id로 댓글 조회 =========
     public Page<CommentResponseDTO> getCommentsByWebtoonId(Long webtoonId, int page, int size) {
         // 1. 웹툰 존재 여부 확인 (EXISTS 쿼리)
         boolean exists = webtoonRepository.existsById(webtoonId);
@@ -263,6 +267,32 @@ public class WebtoonCommentService {
                 .isLiked(false) // 초기값 설정
                 .build();
     }
+
+
+    // 모델이 들어간 사용자 댓글 조회
+    @Transactional(readOnly = true)
+    public Page<CommentWithAnalysisResponse> getCommentsWithAnalysisByWebtoonId(Long webtoonId, int page, int size) {
+        boolean exists = webtoonRepository.existsById(webtoonId);
+        if (!exists) {
+            throw new CustomException("웹툰을 찾을 수 없습니다.", "WEBTOON_NOT_FOUND");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<WebtoonComment> comments = commentRepository.findByWebtoonIdAndDeletedDateTimeIsNull(webtoonId, pageable);
+
+        AppUser currentUser = getCurrentUserOrNull();
+
+        // 트랜잭션 안에서 DTO로 변환
+        return comments.map(comment -> {
+            boolean isLiked = currentUser != null &&
+                    likeRepository.findByAppUserAndWebtoonComment(currentUser, comment)
+                            .map(CommentLike::isLiked)
+                            .orElse(false);
+            // 이 시점에 likes, analysis 등 LAZY 필드 접근 가능
+            return CommentWithAnalysisResponse.from(comment, isLiked);
+        });
+    }
+
 
     // ========= 테스트용 메서드 =========
     public CommentResponseDTO getCommentById(Long commentId) {

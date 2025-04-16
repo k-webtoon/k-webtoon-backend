@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import k_webtoons.k_webtoons.exception.CustomException;
 import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentRequestDTO;
 import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentResponseDTO;
+import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentWithAnalysisResponse;
 import k_webtoons.k_webtoons.service.webtoonComment.WebtoonCommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -43,39 +44,39 @@ public class WebtoonCommentController {
         return ResponseEntity.ok(comment);
     }
 
-    // 웹툰 ID로 댓글 목록 조회 API (페이징)
-    @Operation(
-            summary = "웹툰 ID로 댓글 목록 조회",
-            description = "웹툰 ID에 해당하는 댓글 목록을 페이지네이션 형태로 반환합니다."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "성공적으로 댓글 목록 반환",
-                    content = @Content(schema = @Schema(implementation = CommentResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "웹툰을 찾을 수 없음"
-            )
-    })
-    @GetMapping("/{webtoonId}")
-    public ResponseEntity<Page<CommentResponseDTO>> getCommentsByWebtoonId(
-            @PathVariable Long webtoonId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size) {
-        try {
-            Page<CommentResponseDTO> comments = service.getCommentsByWebtoonId(webtoonId, page, size);
-            System.out.println("API Response: " + comments); // 로깅 추가
-            return ResponseEntity.ok(comments);
-        } catch (CustomException e) {
-            System.out.println("Error Code: " + e.getErrorCode()); // 로깅 추가
-            if ("WEBTOON_NOT_FOUND".equals(e.getErrorCode())) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.internalServerError().build();
-        }
-    }
+//    // 웹툰 ID로 댓글 목록 조회 API (페이징)
+//    @Operation(
+//            summary = "웹툰 ID로 댓글 목록 조회",
+//            description = "웹툰 ID에 해당하는 댓글 목록을 페이지네이션 형태로 반환합니다."
+//    )
+//    @ApiResponses(value = {
+//            @ApiResponse(
+//                    responseCode = "200",
+//                    description = "성공적으로 댓글 목록 반환",
+//                    content = @Content(schema = @Schema(implementation = CommentResponseDTO.class))
+//            ),
+//            @ApiResponse(
+//                    responseCode = "404",
+//                    description = "웹툰을 찾을 수 없음"
+//            )
+//    })
+//    @GetMapping("/{webtoonId}")
+//    public ResponseEntity<Page<CommentResponseDTO>> getCommentsByWebtoonId(
+//            @PathVariable Long webtoonId,
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "6") int size) {
+//        try {
+//            Page<CommentResponseDTO> comments = service.getCommentsByWebtoonId(webtoonId, page, size);
+//            System.out.println("API Response: " + comments); // 로깅 추가
+//            return ResponseEntity.ok(comments);
+//        } catch (CustomException e) {
+//            System.out.println("Error Code: " + e.getErrorCode()); // 로깅 추가
+//            if ("WEBTOON_NOT_FOUND".equals(e.getErrorCode())) {
+//                return ResponseEntity.notFound().build();
+//            }
+//            return ResponseEntity.internalServerError().build();
+//        }
+//    }
 
     @Operation(
             summary = "댓글 수정 API",
@@ -214,4 +215,21 @@ public class WebtoonCommentController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    // 댓글 작성 모델 사용처리는 비동기 형식
+    @Operation(
+            summary = "웹툰 ID로 분석 결과 포함 댓글 목록 조회 (기본 주소로 제공)",
+            description = "웹툰 ID에 해당하는 모든 댓글을 분석 결과와 함께 페이징 처리하여 반환합니다."
+    )
+    @GetMapping("/{webtoonId}")
+    public ResponseEntity<Page<CommentWithAnalysisResponse>> getCommentsWithAnalysisByWebtoonId(
+            @PathVariable Long webtoonId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size
+    ) {
+        return ResponseEntity.ok(
+                service.getCommentsWithAnalysisByWebtoonId(webtoonId, page, size)
+        );
+    }
+
 }
