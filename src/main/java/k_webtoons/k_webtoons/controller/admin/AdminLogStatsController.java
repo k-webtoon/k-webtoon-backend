@@ -1,6 +1,8 @@
 package k_webtoons.k_webtoons.controller.admin;
 
-import k_webtoons.k_webtoons.model.admin.StatResponse;
+import k_webtoons.k_webtoons.model.admin.log.KeywordRankResponse;
+import k_webtoons.k_webtoons.model.admin.log.PageDwellTimeResponse;
+import k_webtoons.k_webtoons.model.admin.log.StatResponse;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.service.admin.AdminStatsService;
 import org.springframework.http.ResponseEntity;
@@ -8,13 +10,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/admin/stats")
-public class AdminStatsController {
+public class AdminLogStatsController {
 
     private final AdminStatsService adminStatsService;
 
-    public AdminStatsController(AdminStatsService adminStatsService) {
+    public AdminLogStatsController(AdminStatsService adminStatsService) {
         this.adminStatsService = adminStatsService;
     }
 
@@ -44,4 +48,19 @@ public class AdminStatsController {
     public ResponseEntity<WebtoonViewCountResponse> getMostVisitedWebtoonDetail() {
         return ResponseEntity.ok(adminStatsService.getMostVisitedWebtoonDetail());
     }
+
+    // TOP 10 검색 키워드
+    @GetMapping("/top-keywords")
+    public ResponseEntity<List<KeywordRankResponse>> getTop10Keywords() {
+        return ResponseEntity.ok(adminStatsService.getTop10Keywords());
+    }
+
+
+    @GetMapping("/page-dwell-time")
+    public ResponseEntity<List<PageDwellTimeResponse>> getPageDwellTime() {
+        return ResponseEntity.ok(adminStatsService.getPageDwellTimeStats());
+    }
+
+
+
 }

@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public class UserActivityLogRepository {
 
@@ -80,4 +82,36 @@ public class UserActivityLogRepository {
             return null;
         }
     }
+
+    // 검색 키워드 TOP10
+    @SuppressWarnings("unchecked") // 경고 무시용
+    public List<Object[]> getTop10Keywords() {
+        String query = """
+                    SELECT
+                        keyword,
+                        COUNT(keyword) AS keyword_count
+                    FROM typing_log
+                    GROUP BY keyword
+                    ORDER BY keyword_count DESC
+                    LIMIT 10
+                """;
+        return entityManager.createNativeQuery(query).getResultList();
+    }
+
+    // 페이지별 평균 체류 시간
+    @SuppressWarnings("unchecked") // 경고 무시용
+    public List<Object[]> getPageDwellTimeStats() {
+        String query = """
+        SELECT 
+            page,
+            ROUND(AVG(duration)) AS avg_duration 
+        FROM page_view_log 
+        WHERE duration > 0 
+        GROUP BY page 
+        ORDER BY avg_duration DESC
+    """;
+        return entityManager.createNativeQuery(query).getResultList();
+    }
+
+
 }

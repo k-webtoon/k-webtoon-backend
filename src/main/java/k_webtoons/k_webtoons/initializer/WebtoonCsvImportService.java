@@ -12,14 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,36 +22,20 @@ public class WebtoonCsvImportService {
     @Autowired
     private WebtoonRepository webtoonRepository;
 
-    private List<String> parseCsvList(String value) {
-        if (!StringUtils.hasText(value)) return Collections.emptyList();
-        return Arrays.stream(value
-                        .replaceAll("[\\[\\]'\"]", "")
-                        .split(",\\s*"))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toList());
-    }
+    @Autowired
+    private CosineSimTableRepository cosineTableRepository;
 
-    private String cleanTitleName(String titleName) {
-        if (!StringUtils.hasText(titleName)) return "";
-        return titleName.replace("[드라마원작]", "").trim();
-    }
-
-    private String cleanSynopsis(String synopsis) {
-        if (!StringUtils.hasText(synopsis)) return "";
-        return synopsis.replace("\n", " ").trim();
-    }
-
-    public void saveWebtoonsFromCSV(String csvFilePath) throws IOException, CsvException {
+    public void saveWebtoonsFromCSV(InputStream inputStream) throws IOException, CsvException {
         RFC4180Parser parser = new RFC4180Parser();
-        try (Reader reader = new FileReader(csvFilePath)) {
-            CSVReader csvReader = new CSVReaderBuilder(reader)
-                    .withCSVParser(parser)
-                    .build();
 
-            String[] headers = csvReader.readNext();
+        try (Reader reader = new InputStreamReader(inputStream);
+             CSVReader csvReader = new CSVReaderBuilder(reader)
+                     .withCSVParser(parser)
+                     .build()) {
 
+            String[] headers = csvReader.readNext(); // 헤더 무시
             String[] nextLine;
+
             while ((nextLine = csvReader.readNext()) != null) {
                 Webtoon webtoon = Webtoon.builder()
                         .titleId(parseLong(nextLine[0]))
@@ -102,22 +80,19 @@ public class WebtoonCsvImportService {
         }
     }
 
-    @Autowired
-    private CosineSimTableRepository cosineTableRepository;
-
-    public void saveWebtoonsFromCSV_2(String filePath) {
-        int batchSize = 10000; // 배치 크기 설정
+    public void saveWebtoonsFromCSV_2(InputStream inputStream) {
+        int batchSize = 10000;
         List<CosineSimTable> batchList = new ArrayList<>();
-        long totalCount = 0; // 총 삽입된 데이터 개수
+        long totalCount = 0;
 
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) { // ✅ 변경됨
             String line;
             boolean firstLine = true;
 
             while ((line = br.readLine()) != null) {
                 if (firstLine) {
                     firstLine = false;
-                    continue; // 첫 줄(헤더) 건너뛰기
+                    continue;
                 }
 
                 String[] data = line.split(",");
@@ -130,22 +105,38 @@ public class WebtoonCsvImportService {
                 totalCount++;
 
                 if (batchList.size() >= batchSize) {
-                    cosineTableRepository.saveAll(batchList); // 배치 삽입
-                    batchList.clear(); // 리스트 초기화
+                    cosineTableRepository.saveAll(batchList);
+                    batchList.clear();
                     System.out.println("현재 진행: " + totalCount + "개 삽입 완료...");
                 }
             }
 
             if (!batchList.isEmpty()) {
-                cosineTableRepository.saveAll(batchList); // 남은 데이터 삽입
+                cosineTableRepository.saveAll(batchList);
                 System.out.println("현재 진행: " + totalCount + "개 삽입 완료...");
             }
 
             System.out.println("✅ 전체 데이터 삽입 완료! 총 " + totalCount + "개");
 
         } catch (IOException e) {
-            throw new RuntimeException("유사도 CSV 파일 읽기 실패: " + filePath, e);
+            throw new RuntimeException("유사도 CSV 파일 읽기 실패", e);
         }
+    }
+
+    private List<String> parseCsvList(String value) {
+        if (!StringUtils.hasText(value)) return Collections.emptyList();
+        return Arrays.stream(value.replaceAll("[\\[\\]'\"]", "").split(",\\s*"))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    private String cleanTitleName(String titleName) {
+        return StringUtils.hasText(titleName) ? titleName.replace("[드라마원작]", "").trim() : "";
+    }
+
+    private String cleanSynopsis(String synopsis) {
+        return StringUtils.hasText(synopsis) ? synopsis.replace("\n", " ").trim() : "";
     }
 
     private Integer parseInteger(String value) {
@@ -167,8 +158,8 @@ public class WebtoonCsvImportService {
     }
 
     private Boolean parseBoolean(String value) {
-        if (!StringUtils.hasText(value)) return false;
-        return value.trim().equals("1") || value.trim().equals("1.0") || value.trim().equalsIgnoreCase("true");
+        return StringUtils.hasText(value) &&
+                (value.trim().equals("1") || value.trim().equals("1.0") || value.trim().equalsIgnoreCase("true"));
     }
 
     private Long parseLong(String value) {

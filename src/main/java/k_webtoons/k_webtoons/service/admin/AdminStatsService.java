@@ -1,15 +1,17 @@
 package k_webtoons.k_webtoons.service.admin;
 
 import k_webtoons.k_webtoons.exception.CustomException;
-import k_webtoons.k_webtoons.exception.WebtoonNotFoundException;
-import k_webtoons.k_webtoons.log.logRepository.PageViewLogRepository;
 import k_webtoons.k_webtoons.log.logRepository.UserActivityLogRepository;
+import k_webtoons.k_webtoons.model.admin.log.KeywordRankResponse;
+import k_webtoons.k_webtoons.model.admin.log.PageDwellTimeResponse;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
-import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonDetailResponse;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -63,4 +65,25 @@ public class AdminStatsService {
                 webtoon.getStarScore()
         );
     }
+
+    // 검색 키워드 TOP10
+    public List<KeywordRankResponse> getTop10Keywords() {
+        List<Object[]> results = userActivityLogRepository.getTop10Keywords();
+        return results.stream()
+                .map(result -> new KeywordRankResponse(
+                        (String) result[0],
+                        ((Number) result[1]).longValue()))
+                .collect(Collectors.toList());
+    }
+
+    // 페이지별 평균 체류 시간
+    public List<PageDwellTimeResponse> getPageDwellTimeStats() {
+        List<Object[]> results = userActivityLogRepository.getPageDwellTimeStats();
+        return results.stream()
+                .map(result -> new PageDwellTimeResponse(
+                        (String) result[0],
+                        ((Number) result[1]).intValue()))
+                .collect(Collectors.toList());
+    }
+
 }
