@@ -1,11 +1,8 @@
 package k_webtoons.k_webtoons.service.admin;
 
 import k_webtoons.k_webtoons.exception.CustomException;
-import k_webtoons.k_webtoons.exception.WebtoonNotFoundException;
-import k_webtoons.k_webtoons.log.logRepository.PageViewLogRepository;
 import k_webtoons.k_webtoons.log.logRepository.UserActivityLogRepository;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
-import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonDetailResponse;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AdminStatsService {
+public class LogStatsService {
 
    private final UserActivityLogRepository userActivityLogRepository;
    private final WebtoonRepository webtoonRepository;
