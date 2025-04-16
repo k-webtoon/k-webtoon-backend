@@ -1,15 +1,19 @@
 package k_webtoons.k_webtoons.model.admin.status.user_stats_dtos;
 
-
 public class AgeDistributionDto {
-    private String ageGroup;
+    private Integer userAge;
     private long count;
 
-    public AgeDistributionDto(String ageGroup, long count) {
-        this.ageGroup = ageGroup;
+    public AgeDistributionDto(Integer userAge, long count) {
+        this.userAge = userAge;
         this.count = count;
     }
 
-    public String getAgeGroup() { return ageGroup; }
-    public long getCount() { return count; }
+    public Integer getUserAge() {
+        return userAge;
+    }
+
+    public long getCount() {
+        return count;
+    }
 }

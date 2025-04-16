@@ -22,25 +22,25 @@ public class UserStatsService {
     }
 
 
-    public List<UserStatusRatioDto> getUserStatusRatio() {
-        return userRepository.countByStatus();
-    }
+//    public List<UserStatusRatioDto> getUserStatusRatio() {
+//        return userRepository.countByStatus();
+//    }
 
-    public InactiveUserRatioDto getInactiveUserRatio() {
-        long total = userRepository.countTotalUsers();
-        long inactive = userRepository.countInactiveSince(LocalDate.now().minusDays(30));
-        double ratio = total == 0 ? 0.0 : (double) inactive / total;
-        return new InactiveUserRatioDto(total, inactive, ratio);
-    }
+//    public InactiveUserRatioDto getInactiveUserRatio() {
+//        long total = userRepository.countTotalUsers();
+//        long inactive = userRepository.countInactiveSince(LocalDate.now().minusDays(30));
+//        double ratio = total == 0 ? 0.0 : (double) inactive / total;
+//        return new InactiveUserRatioDto(total, inactive, ratio);
+//    }
 
-    public WeeklyActiveUserDto getWeeklyActiveUsers() {
-        long count = userRepository.countActiveSince(LocalDate.now().minusDays(7));
-        return new WeeklyActiveUserDto(count, LocalDate.now().minusDays(7).toString(), LocalDate.now().toString());
-    }
+//    public WeeklyActiveUserDto getWeeklyActiveUsers() {
+//        long count = userRepository.countActiveSince(LocalDate.now().minusDays(7));
+//        return new WeeklyActiveUserDto(count, LocalDate.now().minusDays(7).toString(), LocalDate.now().toString());
+//    }
 
-    public List<DailySignupDto> getDailySignupCounts() {
-        return userRepository.getSignupCountsLast30Days();
-    }
+//    public List<DailySignupDto> getDailySignupCounts() {
+//        return userRepository.getSignupCountsLast30Days();
+//    }
 
     public List<AgeDistributionDto> getAgeDistribution() {
         return userRepository.countByAgeGroup();

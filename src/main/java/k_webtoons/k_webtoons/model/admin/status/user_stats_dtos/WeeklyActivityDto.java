@@ -3,10 +3,10 @@ package k_webtoons.k_webtoons.model.admin.status.user_stats_dtos;
 
 public class WeeklyActivityDto {
     private String weekday;
-    private long count;
+    private Long count;
 
-    public WeeklyActivityDto(String weekday, long count) {
-        this.weekday = weekday;
+    public WeeklyActivityDto(Object weekday, Long count) {
+        this.weekday = String.valueOf(weekday);
         this.count = count;
     }
 
@@ -14,7 +14,7 @@ public class WeeklyActivityDto {
         return weekday;
     }
 
-    public long getCount() {
+    public Long getCount() {
         return count;
     }
 }

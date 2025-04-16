@@ -28,34 +28,34 @@ public class AdminUserStatsController {
     /**
      * 상태별 사용자 비율 (ACTIVE / SUSPENDED / DEACTIVATED)
      */
-    @GetMapping("/status-ratio")
-    public ResponseEntity<List<UserStatusRatioDto>> getUserStatusRatio() {
-        return ResponseEntity.ok(userStatsService.getUserStatusRatio());
-    }
+//    @GetMapping("/status-ratio")
+//    public ResponseEntity<List<UserStatusRatioDto>> getUserStatusRatio() {
+//        return ResponseEntity.ok(userStatsService.getUserStatusRatio());
+//    }
 
     /**
      * 최근 활동 없는 사용자 비율 (30일 기준)
      */
-    @GetMapping("/inactive-ratio")
-    public ResponseEntity<InactiveUserRatioDto> getInactiveUserRatio() {
-        return ResponseEntity.ok(userStatsService.getInactiveUserRatio());
-    }
+//    @GetMapping("/inactive-ratio")
+//    public ResponseEntity<InactiveUserRatioDto> getInactiveUserRatio() {
+//        return ResponseEntity.ok(userStatsService.getInactiveUserRatio());
+//    }
 
     /**
      * 최근 7일간 활성 사용자 수
      */
-    @GetMapping("/active-weekly")
-    public ResponseEntity<WeeklyActiveUserDto> getWeeklyActiveUsers() {
-        return ResponseEntity.ok(userStatsService.getWeeklyActiveUsers());
-    }
+//    @GetMapping("/active-weekly")
+//    public ResponseEntity<WeeklyActiveUserDto> getWeeklyActiveUsers() {
+//        return ResponseEntity.ok(userStatsService.getWeeklyActiveUsers());
+//    }
 
     /**
      * 일자별 가입자 수
      */
-    @GetMapping("/daily-signups")
-    public ResponseEntity<List<DailySignupDto>> getDailySignups() {
-        return ResponseEntity.ok(userStatsService.getDailySignupCounts());
-    }
+//    @GetMapping("/daily-signups")
+//    public ResponseEntity<List<DailySignupDto>> getDailySignups() {
+//        return ResponseEntity.ok(userStatsService.getDailySignupCounts());
+//    }
 
     /**
      * 연령대 분포

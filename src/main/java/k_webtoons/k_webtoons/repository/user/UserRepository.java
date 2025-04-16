@@ -36,26 +36,26 @@ public interface UserRepository extends JpaRepository<AppUser, Long> {
     @Query("SELECT COUNT(u) FROM AppUser u")
     long countTotalUsers();
 
-    @Query("SELECT new k_webtoons.k_webtoons.model.admin.status.user_stats_dtos.UserStatusRatioDto(u.accountStatus, COUNT(u)) " +
-            "FROM AppUser u GROUP BY u.accountStatus")
-    List<UserStatusRatioDto> countByStatus();
+//    @Query("SELECT new k_webtoons.k_webtoons.model.admin.status.user_stats_dtos.UserStatusRatioDto(u.accountStatus, COUNT(u)) " +
+//            "FROM AppUser u GROUP BY u.accountStatus")
+//    List<UserStatusRatioDto> countByStatus();
 
-    @Query("SELECT COUNT(u) FROM AppUser u WHERE u.lastActivityAt < :cutoff")
-    long countInactiveSince(LocalDate cutoff);
+//    @Query("SELECT COUNT(u) FROM AppUser u WHERE u.lastActivityAt < :cutoff")
+//    long countInactiveSince(LocalDate cutoff);
+//
+//    @Query("SELECT COUNT(DISTINCT u.id) FROM AppUser u WHERE u.lastActivityAt >= :cutoff")
+//    long countActiveSince(LocalDate cutoff);
 
-    @Query("SELECT COUNT(DISTINCT u.id) FROM AppUser u WHERE u.lastActivityAt >= :cutoff")
-    long countActiveSince(LocalDate cutoff);
-
-    @Query("""
-                SELECT new k_webtoons.k_webtoons.model.admin.status.user_stats_dtos.DailySignupDto(
-                    FUNCTION('DATE', u.createDateTime), COUNT(u)
-                )
-                FROM AppUser u
-                WHERE u.createDateTime >= :#{T(java.time.LocalDateTime).now().minusDays(30)}
-                GROUP BY FUNCTION('DATE', u.createDateTime)
-                ORDER BY FUNCTION('DATE', u.createDateTime)
-            """)
-    List<DailySignupDto> getSignupCountsLast30Days();
+//    @Query("""
+//                SELECT new k_webtoons.k_webtoons.model.admin.status.user_stats_dtos.DailySignupDto(
+//                    FUNCTION('DATE', u.createDateTime), COUNT(u)
+//                )
+//                FROM AppUser u
+//                WHERE u.createDateTime >= :#{T(java.time.LocalDateTime).now().minusDays(30)}
+//                GROUP BY FUNCTION('DATE', u.createDateTime)
+//                ORDER BY FUNCTION('DATE', u.createDateTime)
+//            """)
+//    List<DailySignupDto> getSignupCountsLast30Days();
 
     @Query("SELECT new k_webtoons.k_webtoons.model.admin.status.user_stats_dtos.AgeDistributionDto(u.userAge, COUNT(u)) " +
             "FROM AppUser u GROUP BY u.userAge")
