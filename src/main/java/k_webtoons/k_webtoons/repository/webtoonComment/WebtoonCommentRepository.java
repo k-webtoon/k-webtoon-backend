@@ -16,7 +16,7 @@ public interface WebtoonCommentRepository extends JpaRepository<WebtoonComment ,
 
     Optional<WebtoonComment> findByIdAndDeletedDateTimeIsNull(Long id);
 
-    @EntityGraph(attributePaths = {"appUser"})
+    @EntityGraph(attributePaths = {"appUser","likes", "analysis"})
     @Query("SELECT wc FROM WebtoonComment wc WHERE wc.webtoon.id = :webtoonId AND wc.deletedDateTime IS NULL")
     Page<WebtoonComment> findByWebtoonIdAndDeletedDateTimeIsNull(@Param("webtoonId") Long webtoonId, Pageable pageable);
 

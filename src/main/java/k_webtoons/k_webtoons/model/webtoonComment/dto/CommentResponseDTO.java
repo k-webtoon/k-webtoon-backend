@@ -15,4 +15,14 @@ public record CommentResponseDTO(
         Long likeCount,
         boolean isLiked
 ) {
+    public static CommentResponseDTO fromEntity(WebtoonComment comment, boolean isLiked) {
+        return CommentResponseDTO.builder()
+                .id(comment.getId())
+                .content(comment.getContent())
+                .nickname(comment.getAppUser().getNickname())
+                .createdDate(comment.getCreatedDate())
+                .likeCount((long) comment.getLikes().size())
+                .isLiked(isLiked)
+                .build();
+    }
 }
