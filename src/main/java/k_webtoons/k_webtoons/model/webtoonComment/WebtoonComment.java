@@ -54,6 +54,9 @@ public class WebtoonComment {
     @Builder.Default
     private List<CommentLike> likes = new ArrayList<>();
 
+    @OneToOne(mappedBy = "comment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private CommentAnalysis analysis;
+
     @PrePersist
     public void prePersist() {
         if (createdDate == null) {
