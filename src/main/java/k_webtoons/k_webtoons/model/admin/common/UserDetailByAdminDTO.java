@@ -1,4 +1,4 @@
-package k_webtoons.k_webtoons.model.admin;
+package k_webtoons.k_webtoons.model.admin.common;
 
 import k_webtoons.k_webtoons.security.AccountStatus;
 
