@@ -3,6 +3,7 @@ package k_webtoons.k_webtoons.repository.webtoon;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +14,7 @@ import java.util.Optional;
 public interface WebtoonRepository extends JpaRepository<Webtoon, Long> {
 
     // 좋아요 수 기준 내림차순 조회
+    @EntityGraph(attributePaths = {"rankGenreTypes"})
     Page<Webtoon> findAllByOrderByFavoriteCountDesc(Pageable pageable);
 
     // 제목 키워드 포함 (공개 웹툰만)
