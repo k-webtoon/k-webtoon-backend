@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonDetailResponse;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.service.webtoon.WebtoonService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -15,11 +16,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/api/webtoons")
 public class WebtoonController {
 
-    @Autowired
-    private WebtoonService webtoonService;
+    private final WebtoonService webtoonService;
 
     // 조회수 높은 웹툰 리스트 조회 API
     @Operation(

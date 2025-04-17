@@ -208,7 +208,8 @@ class WebtoonControllerTest {
                 false,
                 List.of("코믹", "로맨스"),
                 List.of("학원물", "성장"),
-                "artist123"
+                "artist123",
+                "www.www"
         );
         
         when(webtoonService.getWebtoonDetail(webtoonId)).thenReturn(detailResponse);

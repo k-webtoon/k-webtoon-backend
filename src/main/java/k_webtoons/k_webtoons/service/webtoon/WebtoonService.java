@@ -6,6 +6,7 @@ import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonDetailResponse;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.repository.webtoon.UserWebtoonReviewRepository;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,13 +18,13 @@ import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
+@AllArgsConstructor
 public class WebtoonService {
 
-    @Autowired
-    private WebtoonRepository webtoonRepository;
-    
-    @Autowired
-    private UserWebtoonReviewRepository userWebtoonReviewRepository;
+    private final WebtoonRepository webtoonRepository;
+    private final UserWebtoonReviewRepository userWebtoonReviewRepository;
+    private final ExternalWebtoonApiService externalWebtoonApiService;
+
 
     // 조회수 높은 웹툰 리스트 조회 (내림차순 정렬)
     public Page<WebtoonViewCountResponse> getTopWebtoons(int page, int size) {
@@ -118,6 +119,8 @@ public class WebtoonService {
         List<String> genre = webtoonRepository.findGenreByWebtoonId(id);
         List<String> tags = webtoonRepository.findTagsByWebtoonId(id);
 
+        String externalUrl = externalWebtoonApiService.fetchWebtoonUrl(webtoon.getTitleName());
+
         return new WebtoonDetailResponse(
                 webtoon.getId(),
                 webtoon.getTitleName(),
@@ -136,7 +139,8 @@ public class WebtoonService {
                 webtoon.getAdult(),
                 genre,
                 tags,
-                webtoon.getArtistId()
+                webtoon.getArtistId(),
+                externalUrl
         );
     }
 
