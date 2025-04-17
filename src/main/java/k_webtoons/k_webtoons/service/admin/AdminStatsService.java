@@ -60,7 +60,8 @@ public class AdminStatsService {
                 webtoon.getThumbnailUrl(),
                 webtoon.getSynopsis(),
                 webtoon.getRankGenreTypes(),
-                webtoon.getStarScore()
+                webtoon.getStarScore(),
+                null
         );
     }
 }
