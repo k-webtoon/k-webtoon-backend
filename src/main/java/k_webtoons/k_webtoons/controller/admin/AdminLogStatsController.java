@@ -1,24 +1,20 @@
 package k_webtoons.k_webtoons.controller.admin;
 
-import k_webtoons.k_webtoons.model.admin.log.KeywordRankResponse;
-import k_webtoons.k_webtoons.model.admin.log.PageDwellTimeResponse;
-import k_webtoons.k_webtoons.model.admin.log.StatResponse;
+import k_webtoons.k_webtoons.model.admin.status.log_stats_dtos.StatResponse;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
-import k_webtoons.k_webtoons.service.admin.AdminStatsService;
+import k_webtoons.k_webtoons.service.admin.LogStatsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/admin/stats")
 public class AdminLogStatsController {
 
-    private final AdminStatsService adminStatsService;
+    private final LogStatsService adminStatsService;
 
-    public AdminLogStatsController(AdminStatsService adminStatsService) {
+    public AdminLogStatsController(LogStatsService adminStatsService) {
         this.adminStatsService = adminStatsService;
     }
 
@@ -49,18 +45,58 @@ public class AdminLogStatsController {
         return ResponseEntity.ok(adminStatsService.getMostVisitedWebtoonDetail());
     }
 
-    // TOP 10 검색 키워드
-    @GetMapping("/top-keywords")
-    public ResponseEntity<List<KeywordRankResponse>> getTop10Keywords() {
-        return ResponseEntity.ok(adminStatsService.getTop10Keywords());
+
+    // TODO: 전체 클릭 수
+    @GetMapping("/logs/click-total")
+    public ResponseEntity<?> getClickTotal() {
+        return ResponseEntity.ok().build();
     }
 
-
-    @GetMapping("/page-dwell-time")
-    public ResponseEntity<List<PageDwellTimeResponse>> getPageDwellTime() {
-        return ResponseEntity.ok(adminStatsService.getPageDwellTimeStats());
+    // TODO: 전체 페이지뷰 수
+    @GetMapping("/logs/pageview-total")
+    public ResponseEntity<?> getPageviewTotal() {
+        return ResponseEntity.ok().build();
     }
 
+    // TODO: 전체 검색 수
+    @GetMapping("/logs/typing-total")
+    public ResponseEntity<?> getTypingTotal() {
+        return ResponseEntity.ok().build();
+    }
 
+    // TODO: 전체 로그 총합
+    @GetMapping("/logs/log-total")
+    public ResponseEntity<?> getLogTotal() {
+        return ResponseEntity.ok().build();
+    }
 
+    // TODO: 검색 키워드 TOP10
+    @GetMapping("/logs/typing-top-keywords")
+    public ResponseEntity<?> getTypingTopKeywords() {
+        return ResponseEntity.ok().build();
+    }
+
+    // TODO: 검색 방식 비율 (기본/AI)
+    @GetMapping("/logs/typing-source-ratio")
+    public ResponseEntity<?> getTypingSourceRatio() {
+        return ResponseEntity.ok().build();
+    }
+
+    // TODO: 검색 방식별 시간 추이
+    @GetMapping("/logs/typing-trend")
+    public ResponseEntity<?> getTypingTrend() {
+        return ResponseEntity.ok().build();
+    }
+
+    // TODO: 클릭 흐름 분석 (page → target)
+    @GetMapping("/logs/click-flow")
+    public ResponseEntity<?> getClickFlow() {
+        return ResponseEntity.ok().build();
+    }
+
+    // TODO: 페이지별 평균 체류 시간
+    @GetMapping("/logs/page-duration")
+    public ResponseEntity<?> getPageDuration() {
+        return ResponseEntity.ok().build();
+    }
 }

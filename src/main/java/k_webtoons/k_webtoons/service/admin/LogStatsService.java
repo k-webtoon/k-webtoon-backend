@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class AdminStatsService {
+public class LogStatsService {
 
    private final UserActivityLogRepository userActivityLogRepository;
    private final WebtoonRepository webtoonRepository;
