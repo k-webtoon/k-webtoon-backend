@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -45,7 +46,7 @@ public class AppUser {
 
     @Column(name = "suspended_at")
     private LocalDateTime suspendedAt; // 정지 시작 시간
-
+    @Column(name = "user_age")
     private Integer userAge;
 
     private String gender;
@@ -79,7 +80,7 @@ public class AppUser {
 
     private String provider;
 
-    @OneToOne(mappedBy = "appUser" , cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "appUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private UserActivity userActivity;
 
     public AppUser(String userEmail, String userPassword, Integer userAge, String gender, String nickname, String role, String phoneNumber, String securityQuestion, String securityAnswer, LocalDateTime createDateTime, String provider) {
@@ -92,7 +93,7 @@ public class AppUser {
         this.phoneNumber = phoneNumber;
         this.securityQuestion = securityQuestion;
         this.securityAnswer = securityAnswer;
-        this.createDateTime =createDateTime;
+        this.createDateTime = createDateTime;
         this.accountStatus = AccountStatus.ACTIVE;
         this.provider = provider;
     }
