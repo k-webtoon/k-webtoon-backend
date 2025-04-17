@@ -13,6 +13,8 @@ public record WebtoonViewCountResponse(
         String thumbnailUrl,
         String synopsis,
         List<String> rankGenreTypes,
-        Double starScore
+        Double starScore,
+        Long totalCount
 ) {
 }
+
