@@ -8,6 +8,7 @@ import k_webtoons.k_webtoons.security.AppUserDetails;
 import k_webtoons.k_webtoons.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -28,15 +29,13 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
         AppUser user = userDetails.getUser();
 
-        // JWT 토큰 생성
         String token = jwtUtil.generateToken(
                 user.getUserEmail(),
                 user.getRole(),
                 user.getIndexId()
         );
 
-        // 프론트엔드로 리다이렉트 (토큰 전달)
         String redirectUrl = "http://localhost:5173/oauth-redirect?token=" + token;
-        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+        response.sendRedirect(redirectUrl); // 바로 리다이렉트
     }
 }

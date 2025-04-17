@@ -1,12 +1,10 @@
 package k_webtoons.k_webtoons.service.auth.oauth2;
 
-import k_webtoons.k_webtoons.config.SecurityConfig;
 import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.repository.user.UserRepository;
 import k_webtoons.k_webtoons.security.AppUserDetails;
 import k_webtoons.k_webtoons.service.user.UserActivityService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -32,36 +30,65 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
-        // Google에서 제공하는 정보 추출
-        String email = (String) attributes.get("email");
-        String name = (String) attributes.get("name");
-        String provider = userRequest.getClientRegistration().getRegistrationId().toUpperCase(); // 공급자 정보 추출
+        final String registrationId = userRequest.getClientRegistration().getRegistrationId();
+        String email = null;
+        String name = null;
 
-        // 기존 사용자 조회 또는 새 사용자 생성
-        AppUser user = userRepository.findByUserEmail(email)
-                .orElseGet(() -> createOAuth2User(email, name, provider)); // provider 파라미터 추가
+        if ("google".equalsIgnoreCase(registrationId)) {
+            email = (String) attributes.get("email");
+            name = (String) attributes.get("name");
+        } else if ("kakao".equalsIgnoreCase(registrationId)) {
+            Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+            if (kakaoAccount != null) {
+                // 이메일 추출 (account_email 동의 필요)
+                email = (String) kakaoAccount.get("email");
+                // 닉네임 추출 (profile_nickname 동의 필요)
+                Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+                if (profile != null) {
+                    name = (String) profile.get("nickname");
+                }
+            }
+        }
+
+        // 닉네임 폴백 처리 (이메일 아이디 or "kakao_user")
+        if (name == null || name.isBlank()) {
+            name = (email != null && email.contains("@"))
+                    ? email.split("@")[0]
+                    : "kakao_user";
+        }
+
+        // 이메일이 반드시 있어야 함
+        if (email == null) {
+            throw new OAuth2AuthenticationException("카카오 이메일 정보를 가져오지 못했습니다.");
+        }
+
+        final String provider = registrationId.toUpperCase();
+        final String finalEmail = email;
+        final String finalName = name;
+
+        AppUser user = userRepository.findByUserEmailAndProvider(finalEmail, provider)
+                .orElseGet(() -> createOAuth2User(finalEmail, finalName, provider));
 
         return new AppUserDetails(user, attributes);
     }
 
     private AppUser createOAuth2User(String email, String name, String provider) {
-        // 필수 필드만 설정 (나머지는 null 허용)
         AppUser newUser = new AppUser(
                 email,
                 passwordEncoder.encode("OAUTH2_DUMMY_PASSWORD"),
-                null,
-                null,
+                null, // userAge
+                null, // gender
                 name,
                 "USER",
-                null,
-                null,
-                null,
+                null, // phoneNumber
+                null, // securityQuestion
+                null, // securityAnswer
                 LocalDateTime.now(),
                 provider
         );
 
         AppUser savedUser = userRepository.save(newUser);
-        userActivityService.createEmptyUserActivity(savedUser); // UserActivity 생성 추가
+        userActivityService.createEmptyUserActivity(savedUser);
         return savedUser;
     }
 }

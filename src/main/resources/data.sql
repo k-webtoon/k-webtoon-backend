@@ -1,5 +1,5 @@
 INSERT INTO public.app_user (
-    user_age, create_date_time, deleted_date_time, gender, nickname, phone_number, "role",
+    user_age, create_date_time, deleted_date_time, gender, nickname, phone_number, role,
     security_answer, security_question, user_email, user_password, account_status, provider
 ) VALUES
 (30, '2025-03-23 19:38:00', NULL, '남', '김민수', '010-1000-0001', 'USER', '광주', '가고 싶은 여행지는?', 'minsu@gmail.com', 'password123', 'ACTIVE', 'LOCAL'),
