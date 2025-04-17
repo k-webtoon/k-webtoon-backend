@@ -32,8 +32,6 @@ public interface UserRepository extends JpaRepository<AppUser, Long> {
 
     Page<AppUser> findByAccountStatus(AccountStatus status, Pageable pageable);
 
-
-    //소원 추가
 // 소원 추가
     @Query("SELECT COUNT(u) FROM AppUser u")
     long countTotalUsers();
@@ -60,8 +58,21 @@ public interface UserRepository extends JpaRepository<AppUser, Long> {
     List<DailySignupDto> getSignupCountsLast30Days(@Param("startDate") LocalDateTime startDate);
 
 
-    @Query("SELECT new k_webtoons.k_webtoons.model.admin.status.user_stats_dtos.AgeDistributionDto(u.userAge, COUNT(u)) " +
-            "FROM AppUser u GROUP BY u.userAge")
+    @Query("SELECT new k_webtoons.k_webtoons.model.admin.status.user_stats_dtos.AgeDistributionDto(" +
+            "CASE " +
+            "  WHEN u.userAge BETWEEN 15 AND 21 THEN 1 " +
+            "  WHEN u.userAge BETWEEN 22 AND 28 THEN 2 " +
+            "  WHEN u.userAge BETWEEN 29 AND 35 THEN 3 " +
+            "  ELSE 4 " +
+            "END, COUNT(u)) " +
+            "FROM AppUser u " +
+            "GROUP BY " +
+            "CASE " +
+            "  WHEN u.userAge BETWEEN 15 AND 21 THEN 1 " +
+            "  WHEN u.userAge BETWEEN 22 AND 28 THEN 2 " +
+            "  WHEN u.userAge BETWEEN 29 AND 35 THEN 3 " +
+            "  ELSE 4 " +
+            "END")
     List<AgeDistributionDto> countByAgeGroup();
 
     @Query("SELECT new k_webtoons.k_webtoons.model.admin.status.user_stats_dtos.GenderRatioDto(u.gender, COUNT(u)) " +

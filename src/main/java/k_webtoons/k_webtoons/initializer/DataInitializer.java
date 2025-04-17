@@ -2,6 +2,7 @@ package k_webtoons.k_webtoons.initializer;
 
 import k_webtoons.k_webtoons.repository.cosine_sim.CosineSimTableRepository;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,21 +16,14 @@ import javax.sql.DataSource;
 import java.io.InputStream;
 
 @Component
+@AllArgsConstructor
 public class DataInitializer implements ApplicationRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
-
-    @Autowired
-    private WebtoonCsvImportService webtoonCsvImportService;
-
-    @Autowired
-    private WebtoonRepository webtoonRepository;
-
-    @Autowired
-    private CosineSimTableRepository cosineTableRepository;
-
-    @Autowired
-    private DataSource dataSource;
+    private final WebtoonCsvImportService webtoonCsvImportService;
+    private final WebtoonRepository webtoonRepository;
+    private final CosineSimTableRepository cosineTableRepository;
+    private final DataSource dataSource;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {

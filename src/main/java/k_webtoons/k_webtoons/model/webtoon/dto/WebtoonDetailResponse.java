@@ -20,5 +20,6 @@ public record WebtoonDetailResponse(
         Boolean isAdult,
         List<String> genre,
         List<String> tag,
-        String artistId
+        String artistId,
+        String webtoonPageUrl
 ) {}

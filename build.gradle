@@ -49,6 +49,7 @@ dependencies {
 	implementation 'jakarta.annotation:jakarta.annotation-api:2.1.1'
 	implementation 'io.github.cdimascio:dotenv-java:3.0.0'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'org.json:json:20240303'
 }
 
 dependencyManagement {

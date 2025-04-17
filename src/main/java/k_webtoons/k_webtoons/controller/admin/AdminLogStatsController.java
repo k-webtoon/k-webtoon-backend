@@ -5,6 +5,7 @@ import k_webtoons.k_webtoons.model.admin.log.PageDwellTimeResponse;
 import k_webtoons.k_webtoons.model.admin.log.StatResponse;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.service.admin.AdminStatsService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,14 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/admin/stats")
 public class AdminLogStatsController {
 
     private final AdminStatsService adminStatsService;
-
-    public AdminLogStatsController(AdminStatsService adminStatsService) {
-        this.adminStatsService = adminStatsService;
-    }
 
     // 하루 접속한 사용자수
     @GetMapping("/daily-active-users")
