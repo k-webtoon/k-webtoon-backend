@@ -90,7 +90,41 @@ public class AdminController {
         PageRequest pageRequest = PageRequest.of(page, size);
         return ResponseEntity.ok(adminService.getUsersByStatus(status, pageRequest));
     }
+//소원 추가
 
 
+    // 웹툰 목록 조회 (페이지네이션 + 검색 + 상태 필터)
+    @GetMapping("/webtoons")
+    @Operation(summary = "웹툰 목록 조회", description = "제목, 작가명으로 검색하거나 공개/비공개 필터링하여 웹툰 목록을 조회합니다.")
+    public ResponseEntity<Page<AdminWebtoonListDto>> getAllWebtoons(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Boolean isPublic,
+            @RequestParam(required = false) String search
+    ) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        return ResponseEntity.ok(adminService.getAllWebtoons(isPublic, search, pageRequest)); // 🔥 이름 맞춰서 호출
+    }
+
+
+    // 웹툰 상세 조회
+    @GetMapping("/webtoons/{webtoonId}")
+    @Operation(summary = "웹툰 상세 조회", description = "특정 웹툰의 상세 정보를 조회합니다.")
+    public ResponseEntity<k_webtoons.k_webtoons.model.admin.common.AdminWebtoonDetailDto> getWebtoonById(@PathVariable Long webtoonId) {
+        return ResponseEntity.ok(adminService.getWebtoonById(webtoonId));
+    }
+
+    // 웹툰 공개/비공개 상태 수정
+    @PatchMapping("/webtoons/{webtoonId}/status")
+    @Operation(summary = "웹툰 공개/비공개 상태 토글", description = "특정 웹툰의 공개 여부를 반전(토글)합니다.")
+    public ResponseEntity<Map<String, String>> toggleWebtoonStatus(@PathVariable Long webtoonId) {
+        adminService.toggleWebtoonStatus(webtoonId);
+        return ResponseEntity.ok(Collections.singletonMap("message", "웹툰 공개 상태가 토글되었습니다"));
+    }
+
+    @GetMapping("/webtoons/count-summary")
+    public WebtoonCountSummaryDto getWebtoonCountSummary() {
+        return adminService.getWebtoonCountSummary();
+    }
 
 }
