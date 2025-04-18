@@ -84,4 +84,6 @@ public interface UserRepository extends JpaRepository<AppUser, Long> {
     List<GenderAgeActivityDto> getGenderAgeActivity();
 
 
+    // oauth2 조회용
+    Optional<AppUser> findByUserEmailAndProvider(String email, String provider);
 }

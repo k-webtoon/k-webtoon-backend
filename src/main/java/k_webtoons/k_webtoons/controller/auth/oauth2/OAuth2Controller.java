@@ -19,4 +19,11 @@ public class OAuth2Controller {
                 .location(URI.create("/oauth2/authorization/google"))
                 .build();
     }
+
+    @GetMapping("/login/kakao")
+    public ResponseEntity<Void> kakaoLogin() {
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create("/oauth2/authorization/kakao"))
+                .build();
+    }
 }
