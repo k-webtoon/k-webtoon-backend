@@ -41,7 +41,7 @@ public class PostgresConfig {
             @Qualifier("postgresDataSource") DataSource dataSource) {
         Map<String, Object> properties = new HashMap<>();
         properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
-        properties.put("hibernate.hbm2ddl.auto", "create-drop");
+        properties.put("hibernate.hbm2ddl.auto", "validate");
 
         return builder
                 .dataSource(dataSource)

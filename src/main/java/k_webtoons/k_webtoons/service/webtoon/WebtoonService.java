@@ -3,10 +3,10 @@ package k_webtoons.k_webtoons.service.webtoon;
 import k_webtoons.k_webtoons.exception.WebtoonNotFoundException;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonDetailResponse;
-import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonPopularityDTO;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.repository.webtoon.UserWebtoonReviewRepository;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,13 +18,13 @@ import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
+@AllArgsConstructor
 public class WebtoonService {
 
-    @Autowired
-    private WebtoonRepository webtoonRepository;
-    
-    @Autowired
-    private UserWebtoonReviewRepository userWebtoonReviewRepository;
+    private final WebtoonRepository webtoonRepository;
+    private final UserWebtoonReviewRepository userWebtoonReviewRepository;
+    private final ExternalWebtoonApiService externalWebtoonApiService;
+
 
     // 조회수 높은 웹툰 리스트 조회 (내림차순 정렬)
     public Page<WebtoonViewCountResponse> getTopWebtoons(int page, int size) {
@@ -42,7 +42,8 @@ public class WebtoonService {
                 webtoon.getThumbnailUrl(),
                 webtoon.getSynopsis(),
                 new ArrayList<>(webtoon.getRankGenreTypes()),
-                webtoon.getStarScore()
+                webtoon.getStarScore(),
+                null
         ));
     }
 
@@ -62,7 +63,8 @@ public class WebtoonService {
                 webtoon.getThumbnailUrl(),
                 webtoon.getSynopsis(),
                 new ArrayList<>(webtoon.getRankGenreTypes()),
-                webtoon.getStarScore()
+                webtoon.getStarScore(),
+                null
         ));
     }
 
@@ -82,7 +84,8 @@ public class WebtoonService {
                 webtoon.getThumbnailUrl(),
                 webtoon.getSynopsis(),
                 new ArrayList<>(webtoon.getRankGenreTypes()),
-                webtoon.getStarScore()
+                webtoon.getStarScore(),
+                null
         ));
     }
 
@@ -102,7 +105,8 @@ public class WebtoonService {
                 webtoon.getThumbnailUrl(),
                 webtoon.getSynopsis(),
                 new ArrayList<>(webtoon.getRankGenreTypes()),
-                webtoon.getStarScore()
+                webtoon.getStarScore(),
+                null
         ));
     }
 
@@ -114,6 +118,8 @@ public class WebtoonService {
         // 별도 쿼리로 컬렉션 데이터 로드
         List<String> genre = webtoonRepository.findGenreByWebtoonId(id);
         List<String> tags = webtoonRepository.findTagsByWebtoonId(id);
+
+        String externalUrl = externalWebtoonApiService.fetchWebtoonUrl(webtoon.getTitleName());
 
         return new WebtoonDetailResponse(
                 webtoon.getId(),
@@ -133,7 +139,8 @@ public class WebtoonService {
                 webtoon.getAdult(),
                 genre,
                 tags,
-                webtoon.getArtistId()
+                webtoon.getArtistId(),
+                externalUrl
         );
     }
 
@@ -153,95 +160,98 @@ public class WebtoonService {
     }
 
     // 웹툰을 즐겨찾기 수 순으로 조회
-    public List<WebtoonPopularityDTO> getMostFavoritedWebtoons(int page, int size) {
-        PageRequest pageable = PageRequest.of(page, size);
+    public List<WebtoonViewCountResponse> getMostFavoritedWebtoons(int size) {
+        PageRequest pageable = PageRequest.of(0, size);
         List<Object[]> results = userWebtoonReviewRepository.findMostFavoritedWebtoons(pageable);
         
-        List<WebtoonPopularityDTO> popularWebtoons = new ArrayList<>();
+        List<WebtoonViewCountResponse> popularWebtoons = new ArrayList<>();
         
         for (Object[] result : results) {
             Long webtoonId = (Long) result[0];
             Long totalCount = ((Number) result[1]).longValue();
-            
+
             Webtoon webtoon = webtoonRepository.findById(webtoonId)
                     .orElseThrow(() -> new WebtoonNotFoundException("웹툰을 찾을 수 없습니다"));
-            
-            List<String> genre = webtoonRepository.findGenreByWebtoonId(webtoonId);
-            
-            popularWebtoons.add(new WebtoonPopularityDTO(
+
+            popularWebtoons.add(new WebtoonViewCountResponse(
                     webtoon.getId(),
+                    webtoon.getTitleId(),
                     webtoon.getTitleName(),
                     webtoon.getAuthor(),
-                    webtoon.getThumbnailUrl(),
-                    genre,
                     webtoon.getAdult(),
+                    webtoon.getAge(),
                     webtoon.getFinish(),
-                    String.format("%.1f", webtoon.getStarScore()),
-                    totalCount // 총 즐겨찾기 수 반환
+                    webtoon.getThumbnailUrl(),
+                    webtoon.getSynopsis(),
+                    new ArrayList<>(webtoon.getRankGenreTypes()),
+                    webtoon.getStarScore(),
+                    totalCount
             ));
         }
-        
+
         return popularWebtoons;
     }
-    
+
     // 웹툰을 좋아요 수 순으로 조회
-    public List<WebtoonPopularityDTO> getMostLikedWebtoons(int page, int size) {
-        PageRequest pageable = PageRequest.of(page, size);
+    public List<WebtoonViewCountResponse> getMostLikedWebtoons(int size) {
+        PageRequest pageable = PageRequest.of(0, size);
         List<Object[]> results = userWebtoonReviewRepository.findMostLikedWebtoons(pageable);
-        
-        List<WebtoonPopularityDTO> popularWebtoons = new ArrayList<>();
-        
+
+        List<WebtoonViewCountResponse> popularWebtoons = new ArrayList<>();
+
         for (Object[] result : results) {
             Long webtoonId = (Long) result[0];
             Long totalCount = ((Number) result[1]).longValue();
-            
+
             Webtoon webtoon = webtoonRepository.findById(webtoonId)
                     .orElseThrow(() -> new WebtoonNotFoundException("웹툰을 찾을 수 없습니다"));
-            
-            List<String> genre = webtoonRepository.findGenreByWebtoonId(webtoonId);
-            
-            popularWebtoons.add(new WebtoonPopularityDTO(
+
+            popularWebtoons.add(new WebtoonViewCountResponse(
                     webtoon.getId(),
+                    webtoon.getTitleId(),
                     webtoon.getTitleName(),
                     webtoon.getAuthor(),
-                    webtoon.getThumbnailUrl(),
-                    genre,
                     webtoon.getAdult(),
+                    webtoon.getAge(),
                     webtoon.getFinish(),
-                    String.format("%.1f", webtoon.getStarScore()),
-                    totalCount  // 총 좋아요 수 반환
+                    webtoon.getThumbnailUrl(),
+                    webtoon.getSynopsis(),
+                    new ArrayList<>(webtoon.getRankGenreTypes()),
+                    webtoon.getStarScore(),
+                    totalCount
             ));
         }
-        
+
         return popularWebtoons;
     }
-    
+
     // 웹툰을 봤어요 수 순으로 조회
-    public List<WebtoonPopularityDTO> getMostWatchedWebtoons(int page, int size) {
-        PageRequest pageable = PageRequest.of(page, size);
+    public List<WebtoonViewCountResponse> getMostWatchedWebtoons(int size) {
+        PageRequest pageable = PageRequest.of(0, size);
         List<Object[]> results = userWebtoonReviewRepository.findMostWatchedWebtoons(pageable);
-        
-        List<WebtoonPopularityDTO> popularWebtoons = new ArrayList<>();
-        
+
+        List<WebtoonViewCountResponse> popularWebtoons = new ArrayList<>();
+
         for (Object[] result : results) {
             Long webtoonId = (Long) result[0];
             Long totalCount = ((Number) result[1]).longValue();
-            
+
             Webtoon webtoon = webtoonRepository.findById(webtoonId)
                     .orElseThrow(() -> new WebtoonNotFoundException("웹툰을 찾을 수 없습니다"));
-            
-            List<String> genre = webtoonRepository.findGenreByWebtoonId(webtoonId);
-            
-            popularWebtoons.add(new WebtoonPopularityDTO(
+
+            popularWebtoons.add(new WebtoonViewCountResponse(
                     webtoon.getId(),
+                    webtoon.getTitleId(),
                     webtoon.getTitleName(),
                     webtoon.getAuthor(),
-                    webtoon.getThumbnailUrl(),
-                    genre,
                     webtoon.getAdult(),
+                    webtoon.getAge(),
                     webtoon.getFinish(),
-                    String.format("%.1f", webtoon.getStarScore()),
-                    totalCount  // 총 봤어요 수 반환
+                    webtoon.getThumbnailUrl(),
+                    webtoon.getSynopsis(),
+                    new ArrayList<>(webtoon.getRankGenreTypes()),
+                    webtoon.getStarScore(),
+                    totalCount
             ));
         }
         

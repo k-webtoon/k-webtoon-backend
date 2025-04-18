@@ -8,6 +8,7 @@ import k_webtoons.k_webtoons.model.cosine_sim.CosineSimTable;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
 import k_webtoons.k_webtoons.repository.cosine_sim.CosineSimTableRepository;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -17,13 +18,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class WebtoonCsvImportService {
 
-    @Autowired
-    private WebtoonRepository webtoonRepository;
-
-    @Autowired
-    private CosineSimTableRepository cosineTableRepository;
+    private final WebtoonRepository webtoonRepository;
+    private final CosineSimTableRepository cosineTableRepository;
 
     public void saveWebtoonsFromCSV(InputStream inputStream) throws IOException, CsvException {
         RFC4180Parser parser = new RFC4180Parser();

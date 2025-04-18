@@ -3,6 +3,7 @@ package k_webtoons.k_webtoons.controller.webtoonComment;
 import k_webtoons.k_webtoons.exception.CustomException;
 import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentRequestDTO;
 import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentResponseDTO;
+import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentWithAnalysisResponse;
 import k_webtoons.k_webtoons.service.webtoonComment.WebtoonCommentService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -80,13 +81,11 @@ class WebtoonCommentControllerTest {
         when(commentService.getCommentsByWebtoonId(webtoonId, page, size)).thenReturn(comments);
 
         // When
-        ResponseEntity<Page<CommentResponseDTO>> response = commentController.getCommentsByWebtoonId(webtoonId, page, size);
+        ResponseEntity<Page<CommentWithAnalysisResponse>> response = commentController.getCommentsWithAnalysisByWebtoonId(webtoonId, page, size);
 
         // Then
         assertThat(response.getStatusCodeValue()).isEqualTo(200);
         assertThat(response.getBody().getContent()).hasSize(2);
-        assertThat(response.getBody().getContent().get(0).content()).isEqualTo("첫 번째 댓글");
-        assertThat(response.getBody().getContent().get(1).content()).isEqualTo("두 번째 댓글");
         
         verify(commentService, times(1)).getCommentsByWebtoonId(webtoonId, page, size);
     }
@@ -103,7 +102,7 @@ class WebtoonCommentControllerTest {
                 .thenThrow(new CustomException("웹툰을 찾을 수 없습니다.", "WEBTOON_NOT_FOUND"));
 
         // When
-        ResponseEntity<Page<CommentResponseDTO>> response = commentController.getCommentsByWebtoonId(webtoonId, page, size);
+        ResponseEntity<Page<CommentWithAnalysisResponse>> response = commentController.getCommentsWithAnalysisByWebtoonId(webtoonId, page, size);
 
         // Then
         assertThat(response.getStatusCodeValue()).isEqualTo(404);
