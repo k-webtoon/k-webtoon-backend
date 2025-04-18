@@ -46,7 +46,8 @@ class WebtoonControllerTest {
                 "thumb1.jpg", 
                 "줄거리1", 
                 List.of("코믹"), 
-                4.5
+                4.5,
+                3L
         ));
         webtoonList.add(new WebtoonViewCountResponse(
                 2L, 
@@ -59,7 +60,8 @@ class WebtoonControllerTest {
                 "thumb2.jpg", 
                 "줄거리2", 
                 List.of("판타지"), 
-                4.3
+                4.3,
+                3L
         ));
         Page<WebtoonViewCountResponse> webtoonPage = new PageImpl<>(webtoonList);
         
@@ -96,7 +98,8 @@ class WebtoonControllerTest {
                 "thumb1.jpg", 
                 "줄거리1", 
                 List.of("코믹"), 
-                4.5
+                4.5,
+                3L
         ));
         Page<WebtoonViewCountResponse> webtoonPage = new PageImpl<>(webtoonList);
         
@@ -132,7 +135,8 @@ class WebtoonControllerTest {
                 "thumb1.jpg", 
                 "줄거리1", 
                 List.of("코믹"), 
-                4.5
+                4.5,
+                3L
         ));
         Page<WebtoonViewCountResponse> webtoonPage = new PageImpl<>(webtoonList);
         
@@ -168,7 +172,8 @@ class WebtoonControllerTest {
                 "thumb1.jpg", 
                 "줄거리1", 
                 List.of("코믹"), 
-                4.5
+                4.5,
+                3L
         ));
         Page<WebtoonViewCountResponse> webtoonPage = new PageImpl<>(webtoonList);
         

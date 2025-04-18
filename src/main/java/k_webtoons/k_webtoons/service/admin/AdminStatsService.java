@@ -3,7 +3,7 @@ package k_webtoons.k_webtoons.service.admin;
 import k_webtoons.k_webtoons.exception.CustomException;
 import k_webtoons.k_webtoons.log.logRepository.UserActivityLogRepository;
 import k_webtoons.k_webtoons.model.admin.common.log.KeywordRankResponse;
-import k_webtoons.k_webtoons.model.admin.common.log.PageDwellTimeResponse;
+import k_webtoons.k_webtoons.model.admin.log.PageDwellTimeResponse;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;

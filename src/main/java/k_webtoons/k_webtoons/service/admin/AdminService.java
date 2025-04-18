@@ -2,10 +2,7 @@ package k_webtoons.k_webtoons.service.admin;
 
 import k_webtoons.k_webtoons.exception.CustomException;
 import k_webtoons.k_webtoons.exception.WebtoonNotFoundException;
-import k_webtoons.k_webtoons.model.admin.common.DashboardSummaryDto;
-import k_webtoons.k_webtoons.model.admin.common.FindAllUserByAdminDTO;
-import k_webtoons.k_webtoons.model.admin.common.UserCountSummaryDTO;
-import k_webtoons.k_webtoons.model.admin.common.UserDetailByAdminDTO;
+import k_webtoons.k_webtoons.model.admin.common.*;
 import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.repository.user.UserRepository;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
@@ -16,9 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import k_webtoons.k_webtoons.repository.user.UserRepository;
-import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
-import k_webtoons.k_webtoons.repository.webtoonComment.WebtoonCommentRepository;
 import org.springframework.transaction.annotation.Transactional;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
 
