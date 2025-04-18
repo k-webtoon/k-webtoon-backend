@@ -2,6 +2,7 @@ package k_webtoons.k_webtoons.controller.connector;
 
 import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.connector.*;
+import k_webtoons.k_webtoons.repository.user.UserRepository;
 import k_webtoons.k_webtoons.security.HeaderValidator;
 import k_webtoons.k_webtoons.service.connector.ConnectorService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class ConnectorController {
 
     private final ConnectorService connectorService;
     private final HeaderValidator headerValidator;
-
+    private final UserRepository userRepository;
 
     @PostMapping("/sendM")
     public ModelMResponse sendMessage (@RequestBody ModelMRequest request) {
@@ -33,19 +34,19 @@ public class ConnectorController {
     }
 
     @PostMapping("/sendL_if")
-    public ResponseEntity<List<ModelLResponse>> sendL_if(
-            @RequestBody ModelLRequest request
-    ) {
-        try {
-            // 인증된 사용자 가져오기
-            AppUser user = headerValidator.getAuthenticatedUser();
+    public ResponseEntity<List<ModelLResponse>> sendL_if(@RequestBody ModelLRequest request) {
+        // 인증된 사용자 가져오기
+        AppUser user = headerValidator.getAuthenticatedUser();
+        System.out.println("인증 사용자: " + user.getUserEmail());
 
-            List<ModelLResponse> response = connectorService.sendToFlaskL(user, request);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+        // 서비스 호출
+        List<ModelLResponse> response = connectorService.sendToFlaskL(user, request);
+
+        // 빈 결과 처리 (빈 리스트 반환)
+        if (response == null || response.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList());
         }
+
+        return ResponseEntity.ok(response);
     }
 }

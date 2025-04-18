@@ -1,21 +1,18 @@
 package k_webtoons.k_webtoons.service.connector;
 
+import k_webtoons.k_webtoons.exception.CustomException;
 import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.connector.*;
-import k_webtoons.k_webtoons.model.webtoon.UserWebtoonReview;
-import k_webtoons.k_webtoons.model.webtoon.Webtoon;
 import k_webtoons.k_webtoons.repository.webtoon.UserWebtoonReviewRepository;
 import k_webtoons.k_webtoons.repository.webtoon.WebtoonRepository;
 import k_webtoons.k_webtoons.security.HeaderValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,11 +25,11 @@ public class ConnectorService {
     private final String FLASK_L_URL = "http://localhost:5000/api/sendL_if";
 
 
-    private WebtoonRepository webtoonRepository;
-    private UserWebtoonReviewRepository userWebtoonReviewRepository;
-    private HeaderValidator headerValidator;
+    private final WebtoonRepository webtoonRepository;
+    private final UserWebtoonReviewRepository userWebtoonReviewRepository;
+    private final HeaderValidator headerValidator;
 
-    // sendToFlask() 메서드 전체 개선
+    // sendToFlask() 메서드 전체 개선`
     public ModelMResponse sendToFlask(ModelMRequest request) {
         // 헤더 설정
         HttpHeaders headers = new HttpHeaders();
@@ -76,35 +73,61 @@ public class ConnectorService {
         );
     }
 
-    // ModelL 요청 처리 (추가된 메서드)
+    // ModelL 요청 처리
     public List<ModelLResponse> sendToFlaskL(AppUser user, ModelLRequest request) {
-        // 1. 사용자의 좋아요/즐겨찾기 웹툰 조회
-        List<UserWebtoonReview> reviews = userWebtoonReviewRepository.findUserLikedOrFavoritedWebtoons(user);
+        try {
+            // 1. 체크박스 상태 매핑 (인기도 → 그림체 → 태그 순서)
+            List<Boolean> checkboxState = Arrays.asList(
+                    request.usePopularity(),
+                    request.useArtStyle(),
+                    request.useTags()
+            );
 
-        // 2. 웹툰 ID 추출 (중복 제거)
-        List<Long> webtoonIds = reviews.stream()
-                .map(review -> review.getWebtoon().getId())
-                .distinct()
-                .collect(Collectors.toList());
+            // 2. 사용자 선호 웹툰 ID 조회
+            List<Long> webtoonIds = userWebtoonReviewRepository
+                    .findUserLikedOrFavoritedWebtoons(user)
+                    .stream()
+                    .map(review -> review.getWebtoon().getId())
+                    .distinct()
+                    .collect(Collectors.toList());
 
-        // 3. Flask로 전송할 요청 생성
-        ModelLRequest flaskRequest = new ModelLRequest(webtoonIds, request.checkboxState());
+            if (webtoonIds.isEmpty()) {
+                throw new CustomException("선호하는 웹툰이 없습니다", "NO_PREFERRED_WEBTOONS");
+            }
 
-        // 4. Flask API 호출
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<ModelLRequest> entity = new HttpEntity<>(flaskRequest, headers);
+            // 3. Flask 요청 객체 생성
+            Map<String, Object> requestMap = Map.of(
+                "webtoon_list", webtoonIds,
+                "checkbox_state", checkboxState
+            );
 
-        ResponseEntity<List<ModelLResponse>> response = restTemplate.exchange(
-                FLASK_L_URL,
-                HttpMethod.POST,
-                entity,
-                new ParameterizedTypeReference<List<ModelLResponse>>() {}
-        );
+            // 4. Flask API 호출 설정
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestMap, headers);
 
-        return response.getBody();
+            // 5. 추천 결과 요청 (ResponseEntity 타입 명시적 지정)
+            ResponseEntity<List<ModelLResponse>> response = restTemplate.exchange(
+                    FLASK_L_URL,
+                    HttpMethod.POST,
+                    entity,
+                    new ParameterizedTypeReference<>() {}  // 타입 추론 개선
+            );
+
+            // 6. 응답 검증
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new CustomException("Flask 서버 응답 오류: " + response.getStatusCode(), "FLASK_RESPONSE_ERROR");
+            }
+
+            return response.getBody() != null ?
+                    response.getBody().stream()
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList()) :
+                    Collections.emptyList();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
-
 
     // 헬퍼 메서드들 유지
     private String getWebtoonTitleById(Long webtoonId) {
