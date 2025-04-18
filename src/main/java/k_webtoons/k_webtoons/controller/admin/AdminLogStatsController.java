@@ -1,8 +1,8 @@
 package k_webtoons.k_webtoons.controller.admin;
 
-import k_webtoons.k_webtoons.model.admin.log.KeywordRankResponse;
-import k_webtoons.k_webtoons.model.admin.log.PageDwellTimeResponse;
-import k_webtoons.k_webtoons.model.admin.log.StatResponse;
+import k_webtoons.k_webtoons.model.admin.common.log.KeywordRankResponse;
+import k_webtoons.k_webtoons.model.admin.common.log.PageDwellTimeResponse;
+import k_webtoons.k_webtoons.model.admin.common.log.StatResponse;
 import k_webtoons.k_webtoons.model.webtoon.dto.WebtoonViewCountResponse;
 import k_webtoons.k_webtoons.service.admin.AdminStatsService;
 import lombok.RequiredArgsConstructor;
