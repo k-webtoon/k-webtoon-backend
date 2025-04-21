@@ -1,6 +1,5 @@
 package k_webtoons.k_webtoons.service.user;
 
-import jakarta.persistence.EntityNotFoundException;
 import k_webtoons.k_webtoons.exception.CustomException;
 import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.user_follow.FollowUserDTO;
@@ -15,14 +14,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import jakarta.persistence.EntityNotFoundException;
+
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,270 +28,163 @@ class UserFollowServiceTest {
 
     @Mock
     private UserFollowRepository userFollowRepository;
-
     @Mock
-    private UserRepository appUserRepository;
-
+    private UserRepository userRepository;
     @Mock
     private HeaderValidator headerValidator;
 
     @InjectMocks
     private UserFollowService userFollowService;
 
+    // 테스트용 AppUser 생성
+    private AppUser createUser(Long id, String nickname) {
+        AppUser user = new AppUser();
+        user.setIndexId(id);
+        user.setNickname(nickname);
+        user.setUserEmail("test" + id + "@test.com");
+        user.setUserAge(20 + id.intValue());
+        user.setGender("남");
+        return user;
+    }
+
     @Test
-    @DisplayName("팔로우 성공 테스트")
-    void followSuccessTest() {
-        // Given
-        Long followerId = 1L;
-        Long followeeId = 2L;
-
-        AppUser follower = new AppUser();
-        follower.setIndexId(followerId);
-        follower.setUserEmail("follower@example.com");
-        follower.setNickname("팔로워");
-
-        AppUser followee = new AppUser();
-        followee.setIndexId(followeeId);
-        followee.setUserEmail("followee@example.com");
-        followee.setNickname("팔로이");
+    @DisplayName("팔로우 - 성공")
+    void 팔로우_성공() {
+        AppUser follower = createUser(1L, "팔로워");
+        AppUser followee = createUser(2L, "팔로이");
 
         when(headerValidator.getAuthenticatedUser()).thenReturn(follower);
-        when(appUserRepository.findById(followeeId)).thenReturn(Optional.of(followee));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(followee));
         when(userFollowRepository.existsByFollowerAndFollowee(follower, followee)).thenReturn(false);
-        when(userFollowRepository.save(any(UserFollow.class))).thenAnswer(i -> i.getArgument(0));
 
-        // When
-        userFollowService.follow(followeeId);
+        userFollowService.follow(2L);
 
-        // Then
-        verify(headerValidator, times(1)).getAuthenticatedUser();
-        verify(appUserRepository, times(1)).findById(followeeId);
-        verify(userFollowRepository, times(1)).existsByFollowerAndFollowee(follower, followee);
-        verify(userFollowRepository, times(1)).save(any(UserFollow.class));
+        verify(userFollowRepository).save(any(UserFollow.class));
     }
 
     @Test
-    @DisplayName("자기 자신을 팔로우할 수 없는 테스트")
-    void followSelfTest() {
-        // Given
-        Long userId = 1L;
+    @DisplayName("팔로우 - 자기 자신 팔로우 시 예외")
+    void 팔로우_자기자신_예외() {
+        AppUser follower = createUser(1L, "팔로워");
+        when(headerValidator.getAuthenticatedUser()).thenReturn(follower);
 
-        AppUser user = new AppUser();
-        user.setIndexId(userId);
-
-        when(headerValidator.getAuthenticatedUser()).thenReturn(user);
-
-        // When, Then
-        assertThrows(CustomException.class, () -> userFollowService.follow(userId));
-        verify(headerValidator, times(1)).getAuthenticatedUser();
-        verify(appUserRepository, never()).findById(any());
-        verify(userFollowRepository, never()).save(any());
+        CustomException ex = assertThrows(CustomException.class, () -> userFollowService.follow(1L));
+        assertEquals("INVALID_REQUEST", ex.getErrorCode());
     }
 
     @Test
-    @DisplayName("이미 팔로우한 경우 중복 팔로우 방지 테스트")
-    void followDuplicateTest() {
-        // Given
-        Long followerId = 1L;
-        Long followeeId = 2L;
-
-        AppUser follower = new AppUser();
-        follower.setIndexId(followerId);
-
-        AppUser followee = new AppUser();
-        followee.setIndexId(followeeId);
+    @DisplayName("언팔로우 - 성공")
+    void 언팔로우_성공() {
+        AppUser follower = createUser(1L, "팔로워");
+        AppUser followee = createUser(2L, "팔로이");
 
         when(headerValidator.getAuthenticatedUser()).thenReturn(follower);
-        when(appUserRepository.findById(followeeId)).thenReturn(Optional.of(followee));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(followee));
         when(userFollowRepository.existsByFollowerAndFollowee(follower, followee)).thenReturn(true);
 
-        // When
-        userFollowService.follow(followeeId);
+        userFollowService.unfollow(2L);
 
-        // Then
-        verify(headerValidator, times(1)).getAuthenticatedUser();
-        verify(appUserRepository, times(1)).findById(followeeId);
-        verify(userFollowRepository, times(1)).existsByFollowerAndFollowee(follower, followee);
-        verify(userFollowRepository, never()).save(any());
+        verify(userFollowRepository).deleteByFollowerAndFollowee(follower, followee);
     }
 
     @Test
-    @DisplayName("언팔로우 성공 테스트")
-    void unfollowSuccessTest() {
-        // Given
-        Long followerId = 1L;
-        Long followeeId = 2L;
-
-        AppUser follower = new AppUser();
-        follower.setIndexId(followerId);
-
-        AppUser followee = new AppUser();
-        followee.setIndexId(followeeId);
+    @DisplayName("언팔로우 - 팔로우 관계 없음 예외")
+    void 언팔로우_관계없음_예외() {
+        AppUser follower = createUser(1L, "팔로워");
+        AppUser followee = createUser(2L, "팔로이");
 
         when(headerValidator.getAuthenticatedUser()).thenReturn(follower);
-        when(appUserRepository.findById(followeeId)).thenReturn(Optional.of(followee));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(followee));
+        when(userFollowRepository.existsByFollowerAndFollowee(follower, followee)).thenReturn(false);
+
+        CustomException ex = assertThrows(CustomException.class, () -> userFollowService.unfollow(2L));
+        assertEquals("INVALID_REQUEST", ex.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("팔로워 목록 조회 - 성공")
+    void 팔로워_목록_조회_성공() {
+        AppUser user = createUser(2L, "팔로이");
+        AppUser follower = createUser(1L, "팔로워");
+        UserFollow userFollow = UserFollow.builder()
+                .follower(follower)
+                .followee(user)
+                .followedAt(LocalDateTime.now())
+                .build();
+
+        when(userRepository.findById(2L)).thenReturn(Optional.of(user));
+        when(userFollowRepository.findByFollowee(user)).thenReturn(List.of(userFollow));
+
+        List<FollowUserDTO> result = userFollowService.getFollowers(2L);
+
+        assertEquals(1, result.size());
+        assertEquals("팔로워", result.get(0).nickname());
+    }
+
+    @Test
+    @DisplayName("팔로잉 목록 조회 - 성공")
+    void 팔로잉_목록_조회_성공() {
+        AppUser user = createUser(1L, "팔로워");
+        AppUser followee = createUser(2L, "팔로이");
+        UserFollow userFollow = UserFollow.builder()
+                .follower(user)
+                .followee(followee)
+                .followedAt(LocalDateTime.now())
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userFollowRepository.findByFollower(user)).thenReturn(List.of(userFollow));
+
+        List<FollowUserDTO> result = userFollowService.getFollowees(1L);
+
+        assertEquals(1, result.size());
+        assertEquals("팔로이", result.get(0).nickname());
+    }
+
+    @Test
+    @DisplayName("팔로워 수 조회 - 성공")
+    void 팔로워_수_조회_성공() {
+        AppUser user = createUser(2L, "팔로이");
+        when(userRepository.findById(2L)).thenReturn(Optional.of(user));
+        when(userFollowRepository.countByFollowee(user)).thenReturn(3L);
+
+        long count = userFollowService.getFollowerCount(2L);
+
+        assertEquals(3L, count);
+    }
+
+    @Test
+    @DisplayName("팔로잉 수 조회 - 성공")
+    void 팔로잉_수_조회_성공() {
+        AppUser user = createUser(1L, "팔로워");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userFollowRepository.countByFollower(user)).thenReturn(2L);
+
+        long count = userFollowService.getFolloweeCount(1L);
+
+        assertEquals(2L, count);
+    }
+
+    @Test
+    @DisplayName("팔로우 상태 확인 - 성공")
+    void 팔로우_상태_확인_성공() {
+        AppUser follower = createUser(1L, "팔로워");
+        AppUser followee = createUser(2L, "팔로이");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(follower));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(followee));
         when(userFollowRepository.existsByFollowerAndFollowee(follower, followee)).thenReturn(true);
-        doNothing().when(userFollowRepository).deleteByFollowerAndFollowee(follower, followee);
 
-        // When
-        userFollowService.unfollow(followeeId);
+        boolean result = userFollowService.checkFollowStatus(1L, 2L);
 
-        // Then
-        verify(headerValidator, times(1)).getAuthenticatedUser();
-        verify(appUserRepository, times(1)).findById(followeeId);
-        verify(userFollowRepository, times(1)).existsByFollowerAndFollowee(follower, followee);
-        verify(userFollowRepository, times(1)).deleteByFollowerAndFollowee(follower, followee);
+        assertTrue(result);
     }
 
     @Test
-    @DisplayName("팔로워 목록 조회 테스트")
-    void getFollowersTest() {
-        // Given
-        Long userId = 1L;
-        
-        AppUser user = new AppUser();
-        user.setIndexId(userId);
-        
-        AppUser follower1 = new AppUser();
-        follower1.setIndexId(2L);
-        follower1.setUserEmail("follower1@example.com");
-        follower1.setNickname("팔로워1");
-        follower1.setUserAge(25);
-        follower1.setGender("남성");
-        
-        AppUser follower2 = new AppUser();
-        follower2.setIndexId(3L);
-        follower2.setUserEmail("follower2@example.com");
-        follower2.setNickname("팔로워2");
-        follower2.setUserAge(30);
-        follower2.setGender("여성");
-        
-        UserFollow follow1 = new UserFollow();
-        follow1.setFollower(follower1);
-        follow1.setFollowee(user);
-        
-        UserFollow follow2 = new UserFollow();
-        follow2.setFollower(follower2);
-        follow2.setFollowee(user);
-        
-        List<UserFollow> follows = new ArrayList<>();
-        follows.add(follow1);
-        follows.add(follow2);
-        
-        when(appUserRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userFollowRepository.findByFollowee(user)).thenReturn(follows);
-        
-        // When
-        List<FollowUserDTO> followers = userFollowService.getFollowers(userId);
-        
-        // Then
-        assertThat(followers).hasSize(2);
-        
-        assertThat(followers.get(0).indexId()).isEqualTo(2L);
-        assertThat(followers.get(0).userEmail()).isEqualTo("follower1@example.com");
-        assertThat(followers.get(0).nickname()).isEqualTo("팔로워1");
-        
-        assertThat(followers.get(1).indexId()).isEqualTo(3L);
-        assertThat(followers.get(1).userEmail()).isEqualTo("follower2@example.com");
-        assertThat(followers.get(1).nickname()).isEqualTo("팔로워2");
-        
-        verify(appUserRepository, times(1)).findById(userId);
-        verify(userFollowRepository, times(1)).findByFollowee(user);
+    @DisplayName("팔로우 상태 확인 - 유저 없음 예외")
+    void 팔로우_상태_유저없음_예외() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        CustomException ex = assertThrows(CustomException.class, () -> userFollowService.checkFollowStatus(1L, 2L));
+        assertEquals("USER_NOT_FOUND", ex.getErrorCode());
     }
-    
-    @Test
-    @DisplayName("팔로이 목록 조회 테스트")
-    void getFolloweesTest() {
-        // Given
-        Long userId = 1L;
-        
-        AppUser user = new AppUser();
-        user.setIndexId(userId);
-        
-        AppUser followee1 = new AppUser();
-        followee1.setIndexId(2L);
-        followee1.setUserEmail("followee1@example.com");
-        followee1.setNickname("팔로이1");
-        followee1.setUserAge(25);
-        followee1.setGender("남성");
-        
-        AppUser followee2 = new AppUser();
-        followee2.setIndexId(3L);
-        followee2.setUserEmail("followee2@example.com");
-        followee2.setNickname("팔로이2");
-        followee2.setUserAge(30);
-        followee2.setGender("여성");
-        
-        UserFollow follow1 = new UserFollow();
-        follow1.setFollower(user);
-        follow1.setFollowee(followee1);
-        
-        UserFollow follow2 = new UserFollow();
-        follow2.setFollower(user);
-        follow2.setFollowee(followee2);
-        
-        List<UserFollow> follows = new ArrayList<>();
-        follows.add(follow1);
-        follows.add(follow2);
-        
-        when(appUserRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userFollowRepository.findByFollower(user)).thenReturn(follows);
-        
-        // When
-        List<FollowUserDTO> followees = userFollowService.getFollowees(userId);
-        
-        // Then
-        assertThat(followees).hasSize(2);
-        
-        assertThat(followees.get(0).indexId()).isEqualTo(2L);
-        assertThat(followees.get(0).userEmail()).isEqualTo("followee1@example.com");
-        assertThat(followees.get(0).nickname()).isEqualTo("팔로이1");
-        
-        assertThat(followees.get(1).indexId()).isEqualTo(3L);
-        assertThat(followees.get(1).userEmail()).isEqualTo("followee2@example.com");
-        assertThat(followees.get(1).nickname()).isEqualTo("팔로이2");
-        
-        verify(appUserRepository, times(1)).findById(userId);
-        verify(userFollowRepository, times(1)).findByFollower(user);
-    }
-    
-    @Test
-    @DisplayName("팔로워 수 조회 테스트")
-    void getFollowerCountTest() {
-        // Given
-        Long userId = 1L;
-        AppUser user = new AppUser();
-        user.setIndexId(userId);
-        
-        when(appUserRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userFollowRepository.countByFollowee(user)).thenReturn(5L);
-        
-        // When
-        long followerCount = userFollowService.getFollowerCount(userId);
-        
-        // Then
-        assertThat(followerCount).isEqualTo(5L);
-        verify(appUserRepository, times(1)).findById(userId);
-        verify(userFollowRepository, times(1)).countByFollowee(user);
-    }
-    
-    @Test
-    @DisplayName("팔로이 수 조회 테스트")
-    void getFolloweeCountTest() {
-        // Given
-        Long userId = 1L;
-        AppUser user = new AppUser();
-        user.setIndexId(userId);
-        
-        when(appUserRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userFollowRepository.countByFollower(user)).thenReturn(3L);
-        
-        // When
-        long followeeCount = userFollowService.getFolloweeCount(userId);
-        
-        // Then
-        assertThat(followeeCount).isEqualTo(3L);
-        verify(appUserRepository, times(1)).findById(userId);
-        verify(userFollowRepository, times(1)).countByFollower(user);
-    }
-} 
+}

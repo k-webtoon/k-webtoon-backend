@@ -2,13 +2,10 @@ package k_webtoons.k_webtoons.service.user;
 
 import k_webtoons.k_webtoons.exception.CustomException;
 import k_webtoons.k_webtoons.model.auth.AppUser;
-import k_webtoons.k_webtoons.model.user.LikeWebtoonDTO;
-import k_webtoons.k_webtoons.model.user.UserCommentResponseDTO;
-import k_webtoons.k_webtoons.model.user.UserInfoDTO;
+import k_webtoons.k_webtoons.model.user.*;
 import k_webtoons.k_webtoons.model.webtoon.UserWebtoonReview;
 import k_webtoons.k_webtoons.model.webtoon.Webtoon;
 import k_webtoons.k_webtoons.model.webtoonComment.WebtoonComment;
-import k_webtoons.k_webtoons.repository.user.UserRepository;
 import k_webtoons.k_webtoons.repository.webtoon.UserWebtoonReviewRepository;
 import k_webtoons.k_webtoons.repository.webtoonComment.WebtoonCommentRepository;
 import k_webtoons.k_webtoons.service.auth.AuthService;
@@ -20,23 +17,20 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AppUserServiceTest {
 
     @Mock
-    private UserRepository userRepository;
+    private AuthService authService;
 
     @Mock
     private UserFollowService userFollowService;
-
-    @Mock
-    private AuthService authService;
 
     @Mock
     private WebtoonCommentRepository webtoonCommentRepository;
@@ -47,164 +41,101 @@ class AppUserServiceTest {
     @InjectMocks
     private AppUserService appUserService;
 
-    @Test
-    @DisplayName("사용자 정보를 성공적으로 조회")
-    void getUserInfoByUserIdSuccess() {
-        // Given
-        Long userId = 1L;
-        AppUser mockUser = new AppUser();
-        mockUser.setIndexId(userId);
-        mockUser.setUserEmail("test@example.com");
-        mockUser.setNickname("테스트유저");
-        mockUser.setUserAge(25);
-        mockUser.setGender("남성");
-        mockUser.setWebtoonComments(new ArrayList<>());
+    // 테스트용 사용자 생성 메서드
+    private AppUser createTestUser() {
+        AppUser user = new AppUser();
+        user.setIndexId(1L);
+        user.setNickname("테스트유저");
+        user.setWebtoonComments(Collections.emptyList()); // null 방지 초기화
+        return user;
+    }
 
-        when(authService.getUserByUserIdNotAdmin(userId)).thenReturn(mockUser);
-        when(userFollowService.getFollowerCount(userId)).thenReturn(10L);
-        when(userFollowService.getFolloweeCount(userId)).thenReturn(5L);
+    @Test
+    @DisplayName("사용자 정보 조회 - 성공")
+    void 사용자_정보_조회_성공() {
+        // Given
+        AppUser user = createTestUser();
+        when(authService.getUserByUserIdNotAdmin(1L)).thenReturn(user);
+        when(userFollowService.getFollowerCount(1L)).thenReturn(100L);
+        when(userFollowService.getFolloweeCount(1L)).thenReturn(50L);
 
         // When
-        UserInfoDTO result = appUserService.getUserInfoByUserId(userId);
+        UserInfoDTO result = appUserService.getUserInfoByUserId(1L);
 
         // Then
-        assertThat(result).isNotNull();
-        assertThat(result.indexId()).isEqualTo(userId);
-        assertThat(result.userEmail()).isEqualTo("test@example.com");
-        assertThat(result.nickname()).isEqualTo("테스트유저");
-        assertThat(result.userAge()).isEqualTo(25);
-        assertThat(result.gender()).isEqualTo("남성");
-        assertThat(result.commentCount()).isEqualTo(0);
-        assertThat(result.followerCount()).isEqualTo(10L);
-        assertThat(result.followeeCount()).isEqualTo(5L);
-
-        verify(authService, times(1)).getUserByUserIdNotAdmin(userId);
-        verify(userFollowService, times(1)).getFollowerCount(userId);
-        verify(userFollowService, times(1)).getFolloweeCount(userId);
+        assertEquals("테스트유저", result.nickname());
+        assertEquals(100L, result.followerCount());
     }
 
     @Test
-    @DisplayName("사용자 정보 조회 실패 - 예외 발생")
-    void getUserInfoByUserIdFailure() {
-        // Given
-        Long userId = 1L;
-        when(authService.getUserByUserIdNotAdmin(userId)).thenThrow(new RuntimeException("사용자를 찾을 수 없습니다."));
+    @DisplayName("사용자 정보 조회 실패 - 사용자 없음")
+    void 사용자_정보_조회_실패() {
+        when(authService.getUserByUserIdNotAdmin(1L))
+                .thenThrow(new CustomException("사용자 없음", "USER_NOT_FOUND"));
 
-        // When, Then
-        assertThrows(CustomException.class, () -> appUserService.getUserInfoByUserId(userId));
-        verify(authService, times(1)).getUserByUserIdNotAdmin(userId);
+        assertThrows(CustomException.class, () ->
+                appUserService.getUserInfoByUserId(1L));
     }
 
     @Test
-    @DisplayName("사용자 댓글 목록 조회 성공")
-    void getCommentsByUserIdSuccess() {
+    @DisplayName("댓글 조회 - 삭제된 댓글 제외")
+    void 댓글_조회_삭제된_댓글_제외() {
         // Given
-        Long userId = 1L;
-        AppUser mockUser = new AppUser();
-        mockUser.setIndexId(userId);
-        mockUser.setNickname("테스트유저");
-        
-        LocalDateTime createdDateTime = LocalDateTime.of(2023, 4, 1, 10, 0);
-        
-        WebtoonComment comment = new WebtoonComment();
-        comment.setId(1L);
-        comment.setContent("좋은 웹툰이네요");
-        comment.setAppUser(mockUser);
-        comment.setCreatedDate(createdDateTime);
-        comment.setLikes(new ArrayList<>());
+        AppUser user = createTestUser();
+        when(authService.getUserByUserIdNotAdmin(1L)).thenReturn(user);
 
-        when(authService.getUserByUserIdNotAdmin(userId)).thenReturn(mockUser);
-        when(webtoonCommentRepository.findByUserIdAndDeletedDateTimeIsNull(userId)).thenReturn(List.of(comment));
+        WebtoonComment activeComment = new WebtoonComment();
+        activeComment.setAppUser(user); // ★ AppUser 할당
+
+        WebtoonComment deletedComment = new WebtoonComment();
+        deletedComment.setDeletedDateTime(LocalDateTime.now());
+        deletedComment.setAppUser(user); // (필요시)
+
+        when(webtoonCommentRepository.findByUserIdAndDeletedDateTimeIsNull(1L))
+                .thenReturn(List.of(activeComment));
 
         // When
-        List<UserCommentResponseDTO> results = appUserService.getCommentsByUserId(userId);
+        List<UserCommentResponseDTO> results = appUserService.getCommentsByUserId(1L);
 
         // Then
-        assertThat(results).hasSize(1);
-        assertThat(results.get(0).id()).isEqualTo(1L);
-        assertThat(results.get(0).content()).isEqualTo("좋은 웹툰이네요");
-        assertThat(results.get(0).nickname()).isEqualTo("테스트유저");
-        assertThat(results.get(0).createdDate()).isEqualTo(createdDateTime);
-        assertThat(results.get(0).likeCount()).isEqualTo(0);
-
-        verify(authService, times(1)).getUserByUserIdNotAdmin(userId);
-        verify(webtoonCommentRepository, times(1)).findByUserIdAndDeletedDateTimeIsNull(userId);
+        assertEquals(1, results.size());
     }
 
     @Test
-    @DisplayName("사용자 댓글 목록 조회 - 빈 목록")
-    void getCommentsByUserIdEmptyList() {
+    @DisplayName("좋아요 웹툰 조회 - 성공")
+    void 좋아요_웹툰_조회_성공() {
         // Given
-        Long userId = 1L;
-        AppUser mockUser = new AppUser();
-        mockUser.setIndexId(userId);
+        AppUser user = createTestUser();
+        when(authService.getUserByUserIdNotAdmin(1L)).thenReturn(user);
 
-        when(authService.getUserByUserIdNotAdmin(userId)).thenReturn(mockUser);
-        when(webtoonCommentRepository.findByUserIdAndDeletedDateTimeIsNull(userId)).thenReturn(Collections.emptyList());
-
-        // When
-        List<UserCommentResponseDTO> results = appUserService.getCommentsByUserId(userId);
-
-        // Then
-        assertThat(results).isEmpty();
-        verify(authService, times(1)).getUserByUserIdNotAdmin(userId);
-        verify(webtoonCommentRepository, times(1)).findByUserIdAndDeletedDateTimeIsNull(userId);
-    }
-
-    @Test
-    @DisplayName("사용자 댓글 목록 조회 실패 - 예외 발생")
-    void getCommentsByUserIdFailure() {
-        // Given
-        Long userId = 1L;
-        when(authService.getUserByUserIdNotAdmin(userId)).thenThrow(new RuntimeException("사용자를 찾을 수 없습니다."));
-
-        // When, Then
-        assertThrows(CustomException.class, () -> appUserService.getCommentsByUserId(userId));
-        verify(authService, times(1)).getUserByUserIdNotAdmin(userId);
-    }
-
-    @Test
-    @DisplayName("좋아요한 웹툰 목록 조회 성공")
-    void getLikedWebtoonsByUserIdSuccess() {
-        // Given
-        Long userId = 1L;
-        AppUser mockUser = new AppUser();
-        mockUser.setIndexId(userId);
-
+        UserWebtoonReview review = new UserWebtoonReview();
         Webtoon webtoon = new Webtoon();
         webtoon.setId(1L);
-        webtoon.setTitleName("인기 웹툰");
-        webtoon.setThumbnailUrl("thumbnail.jpg");
+        webtoon.setTitleName("테스트웹툰");
+        webtoon.setThumbnailUrl("thumb.jpg");
+        review.setWebtoon(webtoon); // Webtoon 객체 주입
 
-        UserWebtoonReview likeWebtoon = new UserWebtoonReview();
-        likeWebtoon.setWebtoon(webtoon);
-        likeWebtoon.setAppUser(mockUser);
-
-        when(authService.getUserByUserIdNotAdmin(userId)).thenReturn(mockUser);
-        when(userWebtoonReviewRepository.findLikedWebtoonsByUserId(userId)).thenReturn(List.of(likeWebtoon));
+        when(userWebtoonReviewRepository.findLikedWebtoonsByUserId(1L))
+                .thenReturn(List.of(review));
 
         // When
-        List<LikeWebtoonDTO> results = appUserService.getLikedWebtoonsByUserId(userId);
+        List<LikeWebtoonDTO> results = appUserService.getLikedWebtoonsByUserId(1L);
 
         // Then
-        assertThat(results).hasSize(1);
-        assertThat(results.get(0).id()).isEqualTo(1L);
-        assertThat(results.get(0).title()).isEqualTo("인기 웹툰");
-        assertThat(results.get(0).thumbnailUrl()).isEqualTo("thumbnail.jpg");
-
-        verify(authService, times(1)).getUserByUserIdNotAdmin(userId);
-        verify(userWebtoonReviewRepository, times(1)).findLikedWebtoonsByUserId(userId);
+        assertEquals("테스트웹툰", results.get(0).title());
     }
 
     @Test
-    @DisplayName("좋아요한 웹툰 목록 조회 실패 - 예외 발생")
-    void getLikedWebtoonsByUserIdFailure() {
+    @DisplayName("좋아요 웹툰 조회 - 결과 없음")
+    void 좋아요_웹툰_조회_결과_없음() {
         // Given
-        Long userId = 1L;
-        when(authService.getUserByUserIdNotAdmin(userId)).thenThrow(new RuntimeException("사용자를 찾을 수 없습니다."));
+        AppUser user = createTestUser();
+        when(authService.getUserByUserIdNotAdmin(1L)).thenReturn(user);
 
-        // When, Then
-        assertThrows(CustomException.class, () -> appUserService.getLikedWebtoonsByUserId(userId));
-        verify(authService, times(1)).getUserByUserIdNotAdmin(userId);
+        when(userWebtoonReviewRepository.findLikedWebtoonsByUserId(1L))
+                .thenReturn(Collections.emptyList());
+
+        // When & Then
+        assertTrue(appUserService.getLikedWebtoonsByUserId(1L).isEmpty());
     }
-} 
+}

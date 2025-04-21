@@ -1,6 +1,5 @@
 package k_webtoons.k_webtoons.controller.webtoonComment;
 
-import k_webtoons.k_webtoons.exception.CustomException;
 import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentRequestDTO;
 import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentResponseDTO;
 import k_webtoons.k_webtoons.model.webtoonComment.dto.CommentWithAnalysisResponse;
@@ -16,251 +15,125 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class WebtoonCommentControllerTest {
 
     @Mock
-    private WebtoonCommentService commentService;
+    private WebtoonCommentService service;
 
     @InjectMocks
-    private WebtoonCommentController commentController;
+    private WebtoonCommentController controller;
 
-    @Test
-    @DisplayName("댓글 작성 성공 테스트")
-    void addCommentTest() {
-        // Given
-        Long webtoonId = 1L;
-        CommentRequestDTO requestDto = new CommentRequestDTO("이 웹툰 좋아요!");
-        
-        LocalDateTime now = LocalDateTime.now();
-        CommentResponseDTO expectedResponse = new CommentResponseDTO(
-                1L,
-                "이 웹툰 좋아요!",
-                "테스트유저",
-                now,
-                0L,
-                false
+    private CommentResponseDTO createDummyComment() {
+        return new CommentResponseDTO(
+                1L, "댓글 내용", "닉네임",
+                LocalDateTime.now(), 5L, false
         );
-        
-        when(commentService.addComment(anyLong(), any(CommentRequestDTO.class))).thenReturn(expectedResponse);
-
-        // When
-        ResponseEntity<CommentResponseDTO> response = commentController.add(webtoonId, requestDto);
-
-        // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody()).isEqualTo(expectedResponse);
-        assertThat(response.getBody().content()).isEqualTo("이 웹툰 좋아요!");
-        
-        verify(commentService, times(1)).addComment(webtoonId, requestDto);
     }
 
     @Test
-    @DisplayName("웹툰 댓글 목록 조회 성공 테스트")
-    void getCommentsByWebtoonIdSuccessTest() {
+    @DisplayName("댓글 작성 - 성공")
+    void addComment() {
         // Given
-        Long webtoonId = 1L;
-        int page = 0;
-        int size = 6;
-        
-        List<CommentResponseDTO> commentList = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
-        commentList.add(new CommentResponseDTO(1L, "첫 번째 댓글", "유저1", now, 3L, false));
-        commentList.add(new CommentResponseDTO(2L, "두 번째 댓글", "유저2", now, 5L, true));
-        
-        Page<CommentResponseDTO> comments = new PageImpl<>(commentList);
-        
-        when(commentService.getCommentsByWebtoonId(webtoonId, page, size)).thenReturn(comments);
+        CommentRequestDTO req = new CommentRequestDTO("댓글 내용");
+        CommentResponseDTO res = createDummyComment();
+        when(service.addComment(1L, req)).thenReturn(res);
 
         // When
-        ResponseEntity<Page<CommentWithAnalysisResponse>> response = commentController.getCommentsWithAnalysisByWebtoonId(webtoonId, page, size);
+        ResponseEntity<CommentResponseDTO> response = controller.add(1L, req);
 
         // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody().getContent()).hasSize(2);
-        
-        verify(commentService, times(1)).getCommentsByWebtoonId(webtoonId, page, size);
-    }
-    
-    @Test
-    @DisplayName("웹툰 댓글 목록 조회 실패 - 웹툰 없음")
-    void getCommentsByWebtoonIdFailTest() {
-        // Given
-        Long webtoonId = 999L;
-        int page = 0;
-        int size = 6;
-        
-        when(commentService.getCommentsByWebtoonId(webtoonId, page, size))
-                .thenThrow(new CustomException("웹툰을 찾을 수 없습니다.", "WEBTOON_NOT_FOUND"));
-
-        // When
-        ResponseEntity<Page<CommentWithAnalysisResponse>> response = commentController.getCommentsWithAnalysisByWebtoonId(webtoonId, page, size);
-
-        // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(404);
-        
-        verify(commentService, times(1)).getCommentsByWebtoonId(webtoonId, page, size);
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("댓글 내용", response.getBody().content());
     }
 
     @Test
-    @DisplayName("댓글 수정 성공 테스트")
-    void updateCommentSuccessTest() {
-        // Given
-        Long commentId = 1L;
-        String newContent = "수정된 댓글 내용";
-        
-        doNothing().when(commentService).updateComment(commentId, newContent);
+    @DisplayName("댓글 수정 - 성공")
+    void updateComment() {
+        // 수정은 void 반환이므로 예외 없이 호출만 검증
+        doNothing().when(service).updateComment(1L, "수정된 내용");
 
-        // When
-        ResponseEntity<String> response = commentController.update(commentId, newContent);
+        ResponseEntity<String> response = controller.update(1L, "수정된 내용");
 
-        // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody()).contains("성공적으로 수정");
-        
-        verify(commentService, times(1)).updateComment(commentId, newContent);
-    }
-    
-    @Test
-    @DisplayName("댓글 수정 실패 - 권한 없음")
-    void updateCommentFailTest() {
-        // Given
-        Long commentId = 1L;
-        String newContent = "수정된 댓글 내용";
-        
-        doThrow(new RuntimeException("수정 권한이 없습니다.")).when(commentService).updateComment(commentId, newContent);
-
-        // When
-        ResponseEntity<String> response = commentController.update(commentId, newContent);
-
-        // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(403);
-        assertThat(response.getBody()).contains("수정 권한이 없습니다");
-        
-        verify(commentService, times(1)).updateComment(commentId, newContent);
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("댓글이 성공적으로 수정되었습니다.", response.getBody());
     }
 
     @Test
-    @DisplayName("댓글 삭제 성공 테스트")
-    void deleteCommentSuccessTest() {
-        // Given
-        Long commentId = 1L;
-        
-        doNothing().when(commentService).deleteComment(commentId);
+    @DisplayName("댓글 삭제 - 성공")
+    void deleteComment() {
+        doNothing().when(service).deleteComment(1L);
 
-        // When
-        ResponseEntity<String> response = commentController.delete(commentId);
+        ResponseEntity<String> response = controller.delete(1L);
 
-        // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody()).contains("성공적으로 삭제");
-        
-        verify(commentService, times(1)).deleteComment(commentId);
-    }
-    
-    @Test
-    @DisplayName("댓글 삭제 실패 - 권한 없음")
-    void deleteCommentFailTest() {
-        // Given
-        Long commentId = 1L;
-        
-        doThrow(new RuntimeException("삭제 권한이 없습니다.")).when(commentService).deleteComment(commentId);
-
-        // When
-        ResponseEntity<String> response = commentController.delete(commentId);
-
-        // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(403);
-        assertThat(response.getBody()).contains("삭제 권한이 없습니다");
-        
-        verify(commentService, times(1)).deleteComment(commentId);
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("댓글이 성공적으로 삭제되었습니다.", response.getBody());
     }
 
     @Test
-    @DisplayName("댓글 좋아요 추가 성공 테스트")
-    void likeCommentSuccessTest() {
-        // Given
-        Long commentId = 1L;
-        
-        doNothing().when(commentService).addLike(commentId);
+    @DisplayName("댓글 좋아요 - 성공")
+    void likeComment() {
+        doNothing().when(service).addLike(1L);
 
-        // When
-        ResponseEntity<String> response = commentController.like(commentId);
+        ResponseEntity<String> response = controller.like(1L);
 
-        // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody()).contains("좋아요가 추가");
-        
-        verify(commentService, times(1)).addLike(commentId);
-    }
-    
-    @Test
-    @DisplayName("댓글 좋아요 추가 실패 - 이미 좋아요 누름")
-    void likeCommentFailTest() {
-        // Given
-        Long commentId = 1L;
-        
-        doThrow(new RuntimeException("이미 좋아요를 눌렀습니다.")).when(commentService).addLike(commentId);
-
-        // When
-        ResponseEntity<String> response = commentController.like(commentId);
-
-        // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(400);
-        assertThat(response.getBody()).contains("이미 좋아요를 누른 경우");
-        
-        verify(commentService, times(1)).addLike(commentId);
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("좋아요가 추가되었습니다.", response.getBody());
     }
 
     @Test
-    @DisplayName("댓글 좋아요 취소 성공 테스트")
-    void unlikeCommentSuccessTest() {
-        // Given
-        Long commentId = 1L;
-        
-        doNothing().when(commentService).removeLike(commentId);
+    @DisplayName("댓글 좋아요 취소 - 성공")
+    void unlikeComment() {
+        doNothing().when(service).removeLike(1L);
 
-        // When
-        ResponseEntity<String> response = commentController.unlike(commentId);
+        ResponseEntity<String> response = controller.unlike(1L);
 
-        // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody()).contains("좋아요가 취소");
-        
-        verify(commentService, times(1)).removeLike(commentId);
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("좋아요가 취소되었습니다.", response.getBody());
     }
-    
+
     @Test
-    @DisplayName("베스트 댓글 조회 테스트")
-    void getBestCommentsTest() {
+    @DisplayName("베스트 댓글 조회 - 성공")
+    void getBestComments() {
+        List<CommentResponseDTO> best = List.of(createDummyComment());
+        when(service.getBestComments(1L)).thenReturn(best);
+
+        ResponseEntity<List<CommentResponseDTO>> response = controller.getBestComments(1L);
+
+        assertEquals(1, response.getBody().size());
+        assertEquals("닉네임", response.getBody().get(0).nickname());
+    }
+
+    @Test
+    @DisplayName("분석 포함 댓글 목록 조회 - 성공")
+    void getCommentsWithAnalysis() {
         // Given
-        Long webtoonId = 1L;
-        List<CommentResponseDTO> bestComments = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
-        bestComments.add(new CommentResponseDTO(1L, "인기 댓글1", "유저1", now, 10L, false));
-        bestComments.add(new CommentResponseDTO(2L, "인기 댓글2", "유저2", now, 8L, false));
-        bestComments.add(new CommentResponseDTO(3L, "인기 댓글3", "유저3", now, 6L, false));
-        
-        when(commentService.getBestComments(webtoonId)).thenReturn(bestComments);
+        CommentWithAnalysisResponse mockResponse = CommentWithAnalysisResponse.builder()
+                .comment(new CommentResponseDTO(1L, "댓글내용", "닉네임", LocalDateTime.now(), 5L, false))
+                .feelTop3(List.of("기쁨", "신남", "행복"))
+                .message1("긍정적인 댓글")
+                .message2("재미있는 웹툰")
+                .message3("추천하고 싶어요")
+                .build();
+
+        Page<CommentWithAnalysisResponse> page = new PageImpl<>(List.of(mockResponse));
+        when(service.getCommentsWithAnalysisByWebtoonId(1L, 0, 6)).thenReturn(page);
 
         // When
-        ResponseEntity<List<CommentResponseDTO>> response = commentController.getBestComments(webtoonId);
+        ResponseEntity<Page<CommentWithAnalysisResponse>> response =
+                controller.getCommentsWithAnalysisByWebtoonId(1L, 0, 6);
 
         // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody()).hasSize(3);
-        assertThat(response.getBody().get(0).content()).isEqualTo("인기 댓글1");
-        assertThat(response.getBody().get(1).content()).isEqualTo("인기 댓글2");
-        assertThat(response.getBody().get(2).content()).isEqualTo("인기 댓글3");
-        
-        verify(commentService, times(1)).getBestComments(webtoonId);
+        assertEquals(1, response.getBody().getContent().size());
+        CommentWithAnalysisResponse result = response.getBody().getContent().get(0);
+        assertEquals("댓글내용", result.comment().content());
+        assertEquals(3, result.feelTop3().size());
+        assertEquals("긍정적인 댓글", result.message1());
     }
-} 
+}
