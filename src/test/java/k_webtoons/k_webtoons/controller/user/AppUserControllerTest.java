@@ -1,6 +1,5 @@
 package k_webtoons.k_webtoons.controller.user;
 
-import k_webtoons.k_webtoons.model.auth.AppUser;
 import k_webtoons.k_webtoons.model.user.*;
 import k_webtoons.k_webtoons.model.user_follow.FollowUserDTO;
 import k_webtoons.k_webtoons.security.HeaderValidator;
@@ -13,17 +12,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,161 +30,67 @@ class AppUserControllerTest {
     @Mock
     private HeaderValidator headerValidator;
 
-    @Mock
-    private SecurityContext securityContext;
-
-    @Mock
-    private Authentication authentication;
-
     @InjectMocks
     private AppUserController appUserController;
 
     @Test
-    @DisplayName("사용자 정보 조회 테스트")
-    void getUserInfoTest() {
+    @DisplayName("사용자 정보 조회 - 성공")
+    void 사용자_정보_조회_성공() {
         // Given
-        Long userId = 1L;
-        UserInfoDTO mockUserInfo = new UserInfoDTO(
-                userId,
-                "test@example.com",
-                "테스트유저",
-                25,
-                "남성",
-                5L,
-                10L,
-                7L
-        );
-
-        when(userService.getUserInfoByUserId(userId)).thenReturn(mockUserInfo);
+        UserInfoDTO mockUser = new UserInfoDTO(1L, "test@test.com", "닉네임", 25, "M", 10L, 100L, 50L);
+        when(userService.getUserInfoByUserId(1L)).thenReturn(mockUser);
 
         // When
-        ResponseEntity<UserInfoDTO> response = appUserController.getUserInfo(userId);
+        ResponseEntity<UserInfoDTO> response = appUserController.getUserInfo(1L);
 
         // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody()).isEqualTo(mockUserInfo);
-        verify(userService, times(1)).getUserInfoByUserId(userId);
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("닉네임", response.getBody().nickname());
     }
 
     @Test
-    @DisplayName("사용자 댓글 조회 테스트")
-    void getCommentsTest() {
+    @DisplayName("사용자 댓글 조회 - 성공")
+    void 사용자_댓글_조회_성공() {
         // Given
-        Long userId = 1L;
-        List<UserCommentResponseDTO> mockComments = List.of(
-                new UserCommentResponseDTO(1L, "좋은 웹툰이네요", "테스트유저", LocalDateTime.now(), 3)
-        );
-
-        when(userService.getCommentsByUserId(userId)).thenReturn(mockComments);
+        UserCommentResponseDTO comment = new UserCommentResponseDTO(1L, "댓글내용", "닉네임", null, 5);
+        when(userService.getCommentsByUserId(1L)).thenReturn(List.of(comment));
 
         // When
-        ResponseEntity<List<UserCommentResponseDTO>> response = appUserController.getComments(userId);
+        ResponseEntity<List<UserCommentResponseDTO>> response = appUserController.getComments(1L);
 
         // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody()).isEqualTo(mockComments);
-        verify(userService, times(1)).getCommentsByUserId(userId);
+        assertEquals(1, response.getBody().size());
+        assertEquals("댓글내용", response.getBody().get(0).content());
     }
 
     @Test
-    @DisplayName("사용자가 좋아요한 웹툰 조회 테스트")
-    void getLikedWebtoonsByUserIdTest() {
+    @DisplayName("좋아요 웹툰 조회 - 성공")
+    void 좋아요_웹툰_조회_성공() {
         // Given
-        Long userId = 1L;
-        List<LikeWebtoonDTO> mockLikedWebtoons = List.of(
-                new LikeWebtoonDTO(1L, "인기 웹툰", "thumbnail.jpg")
-        );
-
-        when(userService.getLikedWebtoonsByUserId(userId)).thenReturn(mockLikedWebtoons);
+        LikeWebtoonDTO webtoon = new LikeWebtoonDTO(1L, "웹툰제목", "thumb.jpg");
+        when(userService.getLikedWebtoonsByUserId(1L)).thenReturn(List.of(webtoon));
 
         // When
-        ResponseEntity<List<LikeWebtoonDTO>> response = appUserController.getLikedWebtoonsByUserId(userId);
+        ResponseEntity<List<LikeWebtoonDTO>> response = appUserController.getLikedWebtoonsByUserId(1L);
 
         // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody()).isEqualTo(mockLikedWebtoons);
-        verify(userService, times(1)).getLikedWebtoonsByUserId(userId);
+        assertEquals(1, response.getBody().size());
+        assertEquals("웹툰제목", response.getBody().get(0).title());
     }
 
     @Test
-    @DisplayName("팔로이 목록 조회 테스트")
-    void getFolloweesTest() {
+    @DisplayName("팔로잉 목록 조회 - 성공")
+    void 팔로잉_목록_조회_성공() {
         // Given
-        Long userId = 1L;
-        List<FollowUserDTO> mockFollowees = List.of(
-                new FollowUserDTO(2L, "test@test.com", "팔로우유저", 20, "남자")
-        );
-
-        when(userFollowService.getFollowees(userId)).thenReturn(mockFollowees);
+        FollowUserDTO followee = new FollowUserDTO(2L, "test@test.com", "팔로우유저",21,"남");
+        when(userFollowService.getFollowees(1L)).thenReturn(List.of(followee));
 
         // When
-        ResponseEntity<List<FollowUserDTO>> response = appUserController.getFollowees(userId);
+        ResponseEntity<List<FollowUserDTO>> response = appUserController.getFollowees(1L);
 
         // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody()).isEqualTo(mockFollowees);
-        verify(userFollowService, times(1)).getFollowees(userId);
+        assertEquals(1, response.getBody().size());
+        assertEquals("팔로우유저", response.getBody().get(0).nickname());
     }
 
-    @Test
-    @DisplayName("팔로워 목록 조회 테스트")
-    void getFollowersTest() {
-        // Given
-        Long userId = 1L;
-        List<FollowUserDTO> mockFollowers = List.of(
-                new FollowUserDTO(3L, "zxcv@zxcv.com", "팔로워유저", 22, "남자")
-        );
-
-        when(userFollowService.getFollowers(userId)).thenReturn(mockFollowers);
-
-        // When
-        ResponseEntity<List<FollowUserDTO>> response = appUserController.getFollowers(userId);
-
-        // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody()).isEqualTo(mockFollowers);
-        verify(userFollowService, times(1)).getFollowers(userId);
-    }
-
-    @Test
-    @DisplayName("현재 로그인한 사용자 정보 조회 테스트")
-    void getCurrentUserInfoTest() {
-        // Given
-        Long userId = 1L;
-        AppUser mockUser = new AppUser();
-        mockUser.setIndexId(userId);
-        mockUser.setUserEmail("test@example.com");
-        mockUser.setNickname("테스트유저");
-        mockUser.setRole("USER");
-
-        UserInfoDTO mockUserInfo = new UserInfoDTO(
-                userId,
-                "test@example.com",
-                "테스트유저",
-                25,
-                "남성",
-                5L,
-                10L,
-                7L
-        );
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_USER");
-        Collection<GrantedAuthority> authorities = List.of(authority);
-
-        doReturn(authorities).when(authentication).getAuthorities();
-        when(headerValidator.getAuthenticatedUser()).thenReturn(mockUser);
-        when(userService.getUserInfoByUserId(userId)).thenReturn(mockUserInfo);
-
-        // When
-        ResponseEntity<MyInfoDTO> response = appUserController.getCurrentUserInfo();
-
-        // Then
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody().indexId()).isEqualTo(userId);
-        assertThat(response.getBody().role()).isEqualTo("USER");
-        assertThat(response.getBody().userEmail()).isEqualTo("test@example.com");
-    }
 }

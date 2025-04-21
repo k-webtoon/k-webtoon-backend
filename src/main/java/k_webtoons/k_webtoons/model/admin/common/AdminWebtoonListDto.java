@@ -28,7 +28,7 @@ public record AdminWebtoonListDto(
                 w.getIsPublic(),
                 w.getThumbnailUrl(),
                 w.getSynopsis(),
-                new ArrayList<>(w.getTags()), // 💥 여기 복사
+                new ArrayList<>(w.getTags()),
                 w.getTotalCount(),
                 w.getFavoriteCount(),
                 w.getCollectedNumOfEpi()
