@@ -1,6 +1,7 @@
 package k_webtoons.k_webtoons.security.oauth2;
 
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import k_webtoons.k_webtoons.model.auth.AppUser;
@@ -35,7 +36,15 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                 user.getIndexId()
         );
 
-        String redirectUrl = "http://localhost:5173/oauth-redirect?token=" + token;
-        response.sendRedirect(redirectUrl); // 바로 리다이렉트
+        Cookie cookie = new Cookie("accessToken", token);
+        cookie.setHttpOnly(false);        // 개발 중에는 false로 설정
+        cookie.setSecure(false);          // 로컬 개발용 (배포 시 true)
+        cookie.setPath("/");              // 모든 경로에서 쿠키 사용
+        cookie.setMaxAge(60 * 60);        // 쿠키 만료 시간: 1시간
+
+        response.addCookie(cookie);
+
+        String redirectUrl = "http://localhost:5173/oauth-redirect";
+        response.sendRedirect(redirectUrl);
     }
 }
